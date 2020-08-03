@@ -1,0 +1,22 @@
+spring:
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration,
+      org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration,
+      org.keycloak.adapters.springboot.KeycloakSpringBootConfiguration
+
+  main:
+    allow-bean-definition-overriding: true
+
+  logging:
+    level:
+      org:
+        keycloak: TRACE
+        apache.catalina.realm: TRACE
+
+keycloak:
+  auth-server-url: localhost
+  realm: none
+  resource: evendilo
+
+variables:
+  cors-allowed-origin: ${EVENDILO_CORS_ALLOWED_ORIGIN}
