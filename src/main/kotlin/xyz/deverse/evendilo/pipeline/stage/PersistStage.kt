@@ -28,7 +28,7 @@ abstract class PersistStage<T : Model>() : Pipeline.Stage {
         }
 
         fun log(actionTarget: T) {
-            logger.info(String.format("%s %s=%s", actionType.toString(), actionTarget?.javaClass?.simpleName, actionTarget?.id))
+            logger.info(String.format("%s %s=%s", actionType.toString(), actionTarget.javaClass.simpleName, actionTarget.id))
         }
     }
 
@@ -55,7 +55,7 @@ abstract class PersistStage<T : Model>() : Pipeline.Stage {
             }
             val action = actions[persistAction]
                     ?: throw IllegalArgumentException(String.format("Action type %s not implemented", persistAction.toString()))
-            var actionTarget = action.execute(target)
+            val actionTarget = action.execute(target)
             action.previous?.let { previousNodes.add(it) }
             if (action.postProcessor != null) {
                 val pp: ((List<T>, Collection<Model>) -> Collection<T>) = action.postProcessor

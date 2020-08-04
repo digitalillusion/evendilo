@@ -41,7 +41,7 @@ class ImporterController(val importerProcessStatusCache: ImporterProcessStatusCa
     @ApiOperation("Abort the ongoing import of an entity, returning the current status if one is present in the session")
     @DeleteMapping("/import/{family}/{destination}")
     fun importerProcessAbort( 
-            @ApiParam(value = "The family of the entity", allowableValues = "generic", allowEmptyValue = false) @PathVariable("family") family: Family,
+            @ApiParam(value = "The family of the entity", allowableValues = "standard", allowEmptyValue = false) @PathVariable("family") family: Family,
             @ApiParam(value = "The destination of the entity", allowableValues = "woocommerce", allowEmptyValue = false) @PathVariable("destination") destination: Destination): ImporterProcessStatus {
         val importTags: List<ImportTag> = listOf(family, destination)
         val cacheId = ImporterProcessStatus.getCacheId(importTags)
@@ -69,7 +69,7 @@ class ImporterController(val importerProcessStatusCache: ImporterProcessStatusCa
     @ApiOperation("Restart the import of an entity")
     @PutMapping("/import/{family}/{model}/{destination}")
     fun importerProcessRestart( 
-            @ApiParam(value = "The family of the entity", allowableValues = "generic", allowEmptyValue = false) @PathVariable("family") family: Family,
+            @ApiParam(value = "The family of the entity", allowableValues = "standard", allowEmptyValue = false) @PathVariable("family") family: Family,
             @ApiParam(value = "The destination of the entity", allowableValues = "woocommerce", allowEmptyValue = false) @PathVariable("destination") destination: Destination): ImporterProcessStatus {
         val importTags: List<ImportTag> = listOf(family, destination)
         val cacheId = ImporterProcessStatus.getCacheId(importTags)
@@ -91,7 +91,7 @@ class ImporterController(val importerProcessStatusCache: ImporterProcessStatusCa
     @ApiOperation("Retrieve the status of the ongoing import of an entity, or a blank status if none is present in the session")
     @GetMapping("/import/{family}/{destination}")
     fun importerProcessStatus(
-            @ApiParam(value = "The family of the entity", allowableValues = "generic", allowEmptyValue = false) @PathVariable("family") family: Family,
+            @ApiParam(value = "The family of the entity", allowableValues = "standard", allowEmptyValue = false) @PathVariable("family") family: Family,
             @ApiParam(value = "The destination of the entity", allowableValues = "woocommerce", allowEmptyValue = false) @PathVariable("destination") destination: Destination): ImporterProcessStatus {
         val importTags: List<ImportTag> = listOf(family, destination)
         val cacheId = ImporterProcessStatus.getCacheId(importTags)
@@ -105,7 +105,7 @@ class ImporterController(val importerProcessStatusCache: ImporterProcessStatusCa
     @ApiOperation("Start the import of an entity")
     @PostMapping("/import/{family}/{destination}/{entityName}")
     fun <T : Model> uploadFileHandler(
-            @ApiParam(value = "The family of the entity", allowableValues = "generic", allowEmptyValue = false) @PathVariable("family") family: Family,
+            @ApiParam(value = "The family of the entity", allowableValues = "standard", allowEmptyValue = false) @PathVariable("family") family: Family,
             @ApiParam(value = "The destination of the entity", allowableValues = "woocommerce", allowEmptyValue = false) @PathVariable("destination") destination: Destination,
             @ApiParam(value = "The class name of the entity", allowEmptyValue = false) @PathVariable("entityName") entityName: String,
             @ApiParam(value = "The file containing the definitions", allowEmptyValue = false) @RequestParam("file") file: MultipartFile): ImporterProcessStatus? {
