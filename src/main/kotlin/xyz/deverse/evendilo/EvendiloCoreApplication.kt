@@ -4,6 +4,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import xyz.deverse.evendilo.config.CorsSecurityConfiguration
 
 inline fun <reified T> logger(): Logger {
@@ -12,6 +13,7 @@ inline fun <reified T> logger(): Logger {
 
 
 @SpringBootApplication
+@EnableConfigurationProperties
 class EvendiloCoreApplication
 
 fun main(args: Array<String>) {

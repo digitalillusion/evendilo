@@ -4,8 +4,8 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.convert.ConversionService
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
-import xyz.deverse.evendilo.importer.standard.StandardWooCommerceProductCsvLine
-import xyz.deverse.evendilo.importer.standard.mappers.StandardWooCommerceProductMapper
+import xyz.deverse.evendilo.importer.standard.woocommerce.StandardWooCommerceProductCsvLine
+import xyz.deverse.evendilo.importer.standard.woocommerce.mappers.StandardWooCommerceProductMapper
 import xyz.deverse.evendilo.model.woocommerce.Product
 import xyz.deverse.importer.ImportLine
 import xyz.deverse.importer.ImportMapper.MappedLine
@@ -14,7 +14,6 @@ import xyz.deverse.importer.ImportStrategyFactory
 import xyz.deverse.importer.Importer
 import xyz.deverse.importer.csv.CsvImportStrategyBuilder
 import javax.annotation.PostConstruct
-import javax.validation.ValidationException
 
 @Service
 class CsvImportStrategyFactory(

@@ -55,7 +55,8 @@ class PipelineFactory<T : Model> (val importerBusinessDelegate: ImporterBusiness
         } else {
             importerBusinessDelegate.getEntityFactoryFor(Family.Standard)
         }
-        val strategy: ImportStrategy<T, ImportLine> = importStrategyFactory.createImportStrategy(importer) as ImportStrategy<T, ImportLine>
+        @Suppress("UNCHECKED_CAST")
+        val strategy = importStrategyFactory.createImportStrategy(importer) as ImportStrategy<T, ImportLine>
         return when (strategy.postProcessCondition) {
             ImportStrategy.PostProcessCondition.ON_ALL_LINES -> createCollectionPersistPipeline(importer, entityFactory, strategy)
             ImportStrategy.PostProcessCondition.ON_EACH_LINE -> createStreamPersistPipeline(importer, entityFactory, strategy)
@@ -72,8 +73,9 @@ class PipelineFactory<T : Model> (val importerBusinessDelegate: ImporterBusiness
         val importStage: ImportStage<T> = ImportStage(importer, strategy)
         val persistStage: PersistStage<T> = resolvePersistStageForType(importer.nodeType)
         return object : AbstractPipeline<T>(importStage, persistStage) {
+            @Suppress("UNCHECKED_CAST")
             override fun setup() {
-                strategy.lineProcessors.add(Consumer { line : ImportLine -> persistLine(line.nodes as MutableList<T>, line.excludedIds, persistStage, line.actionType, line.saveDepth) })
+                strategy.lineProcessors.add(Consumer { line : ImportLine -> persistLine(line.nodes as MutableCollection<T>, line.excludedIds, persistStage, line.actionType, line.saveDepth) })
             }
 
             override fun run() {
@@ -97,6 +99,7 @@ class PipelineFactory<T : Model> (val importerBusinessDelegate: ImporterBusiness
         val importStage: ImportStage<T> = ImportStage(importer, strategy)
         val persistStage: PersistStage<T> = resolvePersistStageForType(importer.nodeType)
         return object : AbstractPipeline<T>(importStage, persistStage) {
+            @Suppress("UNCHECKED_CAST")
             override fun run() {
                 importStage.run()
                 strategy.results.forEach { line -> persistLine(line.nodes as MutableCollection<T>, line.excludedIds, persistStage, line.actionType, line.saveDepth) }

@@ -18,6 +18,6 @@ data class Product(
     var regular_price: String,
     var description: String,
     var short_description: String,
-    var categories: Collection<Category>,
-    var images: Collection<Image>
+    var categories: MutableList<Category>,
+    var images: MutableList<Image>
 ) : Model

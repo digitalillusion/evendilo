@@ -19,4 +19,10 @@ keycloak:
   resource: evendilo
 
 variables:
-  cors-allowed-origin: ${EVENDILO_CORS_ALLOWED_ORIGIN}
+  corsAllowedOrigin: ${EVENDILO_CORS_ALLOWED_ORIGIN}
+  woocommerce:
+    - identifier: "pierretappeti"
+      url: ${EVENDILO_PIERRETAPPETI_API_URL}
+      credentials:
+        username: ${EVENDILO_PIERRETAPPETI_API_USERNAME}
+        password: ${EVENDILO_PIERRETAPPETI_API_PASSWORD}

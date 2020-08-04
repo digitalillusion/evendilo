@@ -2,7 +2,6 @@ package xyz.deverse.evendilo.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import xyz.deverse.importer.generic.ImportTag
-import java.lang.IllegalArgumentException
 
 sealed class Destination(private val type: String) : ImportTag {
     @JsonProperty

@@ -1,17 +1,15 @@
-package xyz.deverse.evendilo.importer.standard.mappers
-
-import xyz.deverse.evendilo.importer.standard.StandardWooCommerceProductCsvLine
-import xyz.deverse.evendilo.model.woocommerce.Product
-import xyz.deverse.importer.csv.CsvFileReader
+package xyz.deverse.evendilo.importer.standard.woocommerce.mappers
 
 import org.mapstruct.Mapper
 import org.mapstruct.Mapping
 import org.mapstruct.Mappings
 import org.mapstruct.Qualifier
 import org.springframework.stereotype.Component
-
+import xyz.deverse.evendilo.importer.standard.woocommerce.StandardWooCommerceProductCsvLine
 import xyz.deverse.evendilo.model.woocommerce.Category
 import xyz.deverse.evendilo.model.woocommerce.Image
+import xyz.deverse.evendilo.model.woocommerce.Product
+import xyz.deverse.importer.csv.CsvFileReader
 
 @Qualifier
 @Target(AnnotationTarget.FUNCTION)
@@ -26,11 +24,11 @@ annotation class CategoryMap
 @Component
 class ImageMapper {
     @ImageMap
-    fun toImages(imageUrls: String): Collection<Image> {
+    fun toImages(imageUrls: String): MutableList<Image> {
         return if (imageUrls.isNotEmpty()) {
-            imageUrls.split(",").map { Image(it.trim()) }
+            imageUrls.split(",").map { Image(it.trim()) }.toMutableList()
         } else {
-            listOf()
+            mutableListOf()
         }
     }
 }
@@ -38,11 +36,11 @@ class ImageMapper {
 @Component
 class CategoryMapper {
     @CategoryMap
-    fun toCategory(categoryNames: String): Collection<Category> {
+    fun toCategory(categoryNames: String): MutableList<Category> {
         return if (categoryNames.isNotEmpty()) {
-            categoryNames.split(",").map { Category(null, it.trim()) }
+            categoryNames.split(",").map { Category(null, it.trim()) }.toMutableList()
         } else {
-            listOf()
+            mutableListOf()
         }
     }
 }

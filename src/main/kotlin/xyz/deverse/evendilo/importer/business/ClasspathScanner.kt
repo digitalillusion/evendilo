@@ -6,7 +6,6 @@ import org.springframework.context.annotation.ClassPathScanningCandidateComponen
 import org.springframework.core.type.classreading.MetadataReader
 import org.springframework.core.type.classreading.MetadataReaderFactory
 import org.springframework.core.type.filter.TypeFilter
-import java.util.stream.Collector
 
 class ClasspathScanner(private val basePackage: String) {
     fun findByAnnotation(annotationClass: Class<*>): Array<Class<*>> {
