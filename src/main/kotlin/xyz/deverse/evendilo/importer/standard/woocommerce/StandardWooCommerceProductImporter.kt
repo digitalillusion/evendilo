@@ -2,7 +2,7 @@ package xyz.deverse.evendilo.importer.standard.woocommerce
 
 
 import org.springframework.stereotype.Service
-import xyz.deverse.evendilo.api.woocommerce.StandardWooCommerceApi
+import xyz.deverse.evendilo.api.woocommerce.WooCommerceApi
 import xyz.deverse.evendilo.importer.ErrorCode
 import xyz.deverse.evendilo.importer.ImportLineException
 import xyz.deverse.evendilo.model.Destination
@@ -25,7 +25,7 @@ data class StandardWooCommerceProductCsvLine(
 ) : CsvFileReader.CsvLine<Product>()
 
 @Service
-class StandardWooCommerceProductImporter(var api: StandardWooCommerceApi) :
+class StandardWooCommerceProductImporter(var api: WooCommerceApi) :
         AbstractImporter<Product, ImportMapper.MappedLine<Product>>(Family.Standard, Destination.WooCommerce) {
 
     override fun reinitialize() {
@@ -36,12 +36,11 @@ class StandardWooCommerceProductImporter(var api: StandardWooCommerceApi) :
         line.nodes.forEach { node ->
             val categoryNames = node.categories.map { it.name }
             categoryNames.forEach { categoryName ->
-                val category = api.findCategory(categoryName) ?: throw ImportLineException(ErrorCode.IMPORT_LINE_ERROR_WRONG_CATEGORY)
+                val category = api.findCategory(categoryName) ?: throw ImportLineException(ErrorCode.IMPORT_LINE_ERROR_PRODUCT_CATEGORY)
                 node.categories.replaceAll { c ->
                     return@replaceAll if (c.name == categoryName) { category } else { c }
                 }
             }
-
         }
 
     }

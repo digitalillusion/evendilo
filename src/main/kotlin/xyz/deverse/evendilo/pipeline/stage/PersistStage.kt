@@ -17,20 +17,18 @@ abstract class PersistStage<T : Model>() : Pipeline.Stage {
         DELETE, DETACH, SAVE, UPDATE
     }
 
-    abstract class PersistStageAction<T : Model, U : Model?>(private val actionType: PersistActionType, private val retriever: ((T) -> U?)? = null, private val computer: ((T, U?) -> Unit)? = null, private val updater: ((T, U?) -> T)? = null, val postProcessor: ((Collection<T>, Collection<Model>) -> Collection<T>)? = null) {
+    class PersistStageAction<T : Model, U : Model?>(val actionType: PersistActionType, private val retriever: ((T) -> U?)? = null, private val computer: ((T, U?) -> Unit)? = null, private val updater: ((T, U?) -> T)? = null, val postProcessor: ((Collection<T>, Collection<Model>) -> Collection<T>)? = null) {
         private val logger = logger<PersistStageAction<T, U>>()
 
-        private var target: T? = null
         var previous: U? = null
         fun execute(target: T): T {
-            this.target = target
             previous = retriever?.invoke(target)
             computer?.invoke(target, previous)
             return updater?.invoke(target, previous) ?: target
         }
 
-        fun logActionMessage() {
-            logger.info(String.format("%s %s=%s", actionType.toString(), target?.javaClass?.simpleName, target?.id))
+        fun log(actionTarget: T) {
+            logger.info(String.format("%s %s=%s", actionType.toString(), actionTarget?.javaClass?.simpleName, actionTarget?.id))
         }
     }
 
@@ -51,30 +49,30 @@ abstract class PersistStage<T : Model>() : Pipeline.Stage {
                 return@iterateTarget
             }
             val persistAction: PersistActionType = if (ActionType.PERSIST == actionType) {
-                PersistActionType.UPDATE
+                if (target.id == null) PersistActionType.SAVE else PersistActionType.UPDATE
             } else {
                 PersistActionType.valueOf(actionType.toString())
             }
             val action = actions[persistAction]
                     ?: throw IllegalArgumentException(String.format("Action type %s not implemented", persistAction.toString()))
-            action.execute(target)
+            var actionTarget = action.execute(target)
             action.previous?.let { previousNodes.add(it) }
             if (action.postProcessor != null) {
                 val pp: ((List<T>, Collection<Model>) -> Collection<T>) = action.postProcessor
                 postProcessors[action] = pp
                 nodesPerAction.merge(
                         action,
-                        mutableListOf(target)
+                        mutableListOf(actionTarget)
                 ) { x, y -> x + y }
             } else {
-                targetsToUpdate.add(target)
-                action.logActionMessage()
+                targetsToUpdate.add(actionTarget)
+                action.log(actionTarget)
             }
         }
         postProcessors.forEach { (action, postProcessor) ->
             val targetNodes = nodesPerAction.getOrDefault(action, ArrayList())
             val postProcessed: Collection<T> = postProcessor(targetNodes, previousNodes)
-            postProcessed.forEach { _ -> action.logActionMessage() }
+            postProcessed.forEach { targetUpdated -> action.log(targetUpdated) }
             targetsToUpdate.addAll(postProcessed)
         }
         target = targetsToUpdate
@@ -92,8 +90,8 @@ abstract class PersistStage<T : Model>() : Pipeline.Stage {
         }
     }
 
-    protected fun addAction(actionType: PersistActionType, persistStageAction: PersistStageAction<T, Model>) {
-        actions[actionType] = persistStageAction
+    protected fun addAction(persistStageAction: PersistStageAction<T, Model>) {
+        actions[persistStageAction.actionType] = persistStageAction
     }
 
     private fun iterateTarget(consumer: (T, Boolean) -> Unit) {

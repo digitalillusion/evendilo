@@ -108,7 +108,7 @@ class ImporterController(val importerProcessStatusCache: ImporterProcessStatusCa
             @ApiParam(value = "The family of the entity", allowableValues = "generic", allowEmptyValue = false) @PathVariable("family") family: Family,
             @ApiParam(value = "The destination of the entity", allowableValues = "woocommerce", allowEmptyValue = false) @PathVariable("destination") destination: Destination,
             @ApiParam(value = "The class name of the entity", allowEmptyValue = false) @PathVariable("entityName") entityName: String,
-            @ApiParam(value = "The file containing the definitions", allowEmptyValue = false) @RequestParam("file") file: MultipartFile): ImporterProcessStatus {
+            @ApiParam(value = "The file containing the definitions", allowEmptyValue = false) @RequestParam("file") file: MultipartFile): ImporterProcessStatus? {
         csvImportStrategyFactory.csvFile = file
         val pipeline = pipelineFactory.createPersistPipeline(entityName, csvImportStrategyFactory, family.toString(), destination.toString()) as Pipeline<T>
         val importStage: ImportStage<T> = pipeline.getStageByType(ImportStage::class.java).get() as ImportStage<T>
@@ -147,7 +147,7 @@ class ImporterController(val importerProcessStatusCache: ImporterProcessStatusCa
         logger.debug(httpSession.id + " [POST uploadFileHandler] " + cacheId + "=" + newImporterProcessStatus.toString())
 
         performImportFile(pipeline, strategy, importer, cacheId)
-        return newImporterProcessStatus
+        return retrieve(cacheId)
     }
 
     private fun getImportedTypes(importTags: List<ImportTag>): SortedSet<String> {

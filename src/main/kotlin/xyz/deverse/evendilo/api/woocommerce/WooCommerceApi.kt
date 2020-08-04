@@ -5,9 +5,10 @@ import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import xyz.deverse.evendilo.config.properties.AppConfigurationProperties
 import xyz.deverse.evendilo.model.woocommerce.Category
+import xyz.deverse.evendilo.model.woocommerce.Product
 
 @Service
-class StandardWooCommerceApi(var appConfigProperties: AppConfigurationProperties, var restTemplatesBuilder: RestTemplateBuilder) {
+class WooCommerceApi(var appConfigProperties: AppConfigurationProperties, var restTemplatesBuilder: RestTemplateBuilder) {
 
     val categoryCache = HashMap<String, Array<Category>?>()
 
@@ -42,5 +43,9 @@ class StandardWooCommerceApi(var appConfigProperties: AppConfigurationProperties
     fun findCategory(search: String = "") : Category? {
         val categories = findCategories(search, true)
         return if (categories.isNotEmpty()) categories[0] else null
+    }
+
+    fun createProduct(product: Product) : Product {
+        return rest().postForObject("/wp-json/wc/v3/products", product, Product::class.java)!!
     }
 }

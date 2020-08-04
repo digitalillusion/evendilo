@@ -10,6 +10,7 @@ import xyz.deverse.evendilo.model.Family
 import xyz.deverse.evendilo.model.Model
 import xyz.deverse.evendilo.pipeline.stage.ImportStage
 import xyz.deverse.evendilo.pipeline.stage.PersistStage
+import xyz.deverse.evendilo.pipeline.stage.woocommerce.WooCommerceProductPersistStage
 import xyz.deverse.importer.*
 import xyz.deverse.importer.generic.ImportTag
 import xyz.deverse.importer.pipeline.Pipeline
@@ -18,7 +19,10 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
 
 @Service
-class PipelineFactory<T : Model> (val importerBusinessDelegate: ImporterBusinessDelegate) {
+class PipelineFactory<T : Model> (
+    val importerBusinessDelegate: ImporterBusinessDelegate,
+    val wooCommerceProductPersistStage: WooCommerceProductPersistStage
+) {
     val logger = logger<PipelineFactory<T>>()
     /**
      * Create a persist pipeline given a type and a factory for the import strategy. The pipeline is composed of the following stages:
@@ -126,10 +130,11 @@ class PipelineFactory<T : Model> (val importerBusinessDelegate: ImporterBusiness
         persistStage.run()
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun resolvePersistStageForType(type: Class<out Model?>?): PersistStage<T> {
-        // if (Equipment::class.java.isAssignableFrom(type)) {
-        //    return equipmentPersistStage as PersistStage<T?>?
-        //}
+        if (xyz.deverse.evendilo.model.woocommerce.Product::class.java.isAssignableFrom(type)) {
+            return wooCommerceProductPersistStage as PersistStage<T>
+        }
         return object : PersistStage<T>() {
             override fun run() {
                 logger.info("Default PersistStage does nothing")
