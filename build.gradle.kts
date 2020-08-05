@@ -26,7 +26,7 @@ dependencies {
 	implementation("org.mapstruct:mapstruct:1.4.0.Beta3")
 	kapt("org.mapstruct:mapstruct-processor:1.4.0.Beta3")
 
-	implementation(files("lib/importer-lib-1.1.9.jar"))
+	implementation(files("lib/importer-lib-1.2.0.jar"))
 	implementation(files("lib/auth-lib-1.0.14.jar"))
 	implementation("com.google.guava:guava:29.0-jre")
 	implementation("org.hibernate:hibernate-validator:5.2.4.Final")

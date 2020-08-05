@@ -27,6 +27,6 @@ data class AppConfigurationProperties(
 
     @PostConstruct
     fun debugAppProperties() {
-        logger.info(this.toString())
+        logger.debug(this.toString())
     }
 }
