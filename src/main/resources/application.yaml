@@ -1,9 +1,4 @@
 spring:
-  autoconfigure:
-    exclude: org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration,
-      org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration,
-      org.keycloak.adapters.springboot.KeycloakSpringBootConfiguration
-
   main:
     allow-bean-definition-overriding: true
 
@@ -13,16 +8,36 @@ spring:
         keycloak: TRACE
         apache.catalina.realm: TRACE
 
-keycloak:
-  auth-server-url: localhost
-  realm: none
-  resource: evendilo
+  security:
+    oauth2:
+      client:
+        registration:
+          pierretappeti:
+            provider: pierretappeti
+            client-id: ${EVENDILO_PIERRETAPPETI_OAUTH_CLIENT}
+            client-secret: ${EVENDILO_PIERRETAPPETI_OAUTH_SECRET}
+            authorization-grant-type: authorization_code
+            redirect-uri: ${EVENDILO_ORIGIN}/login/oauth2/code/pierretappeti
+        provider:
+          pierretappeti:
+            authorization-uri: ${EVENDILO_PIERRETAPPETI_URL}/wp-json/moserver/authorize
+            token-uri: ${EVENDILO_PIERRETAPPETI_URL}/wp-json/moserver/token
+            user-info-uri: ${EVENDILO_PIERRETAPPETI_URL}/wp-json/moserver/resource
+            user-info-authentication-method: basic
+            user-name-attribute: username
+
 
 variables:
   corsAllowedOrigin: ${EVENDILO_CORS_ALLOWED_ORIGIN}
   woocommerce:
     - identifier: "pierretappeti"
-      url: ${EVENDILO_PIERRETAPPETI_API_URL}
+      url: ${EVENDILO_PIERRETAPPETI_URL}
       credentials:
         username: ${EVENDILO_PIERRETAPPETI_API_USERNAME}
         password: ${EVENDILO_PIERRETAPPETI_API_PASSWORD}
+
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
