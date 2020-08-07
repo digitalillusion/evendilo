@@ -1,6 +1,4 @@
-import org.jetbrains.kotlin.base.kapt3.KaptOptions
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.jetbrains.kotlin.kapt3.base.Kapt.kapt
 
 plugins {
 	id("org.springframework.boot") version "2.4.0-SNAPSHOT"
@@ -36,8 +34,7 @@ dependencies {
 	implementation("io.springfox:springfox-data-rest:3.0.0")
 	implementation("io.springfox:springfox-swagger2:3.0.0")
 	implementation("io.springfox:springfox-bean-validators:3.0.0")
-	implementation("org.springframework.security:spring-security-oauth2-client:5.3.3.RELEASE")
-	implementation("io.jsonwebtoken:jjwt:0.5.1")
+	implementation("org.springframework.security:spring-security-oauth2-client")
 	implementation("org.apache.poi:poi:4.1.2")
 	implementation("org.apache.poi:poi-ooxml:4.1.2")
 	implementation("org.apache.commons:commons-lang3:3.11")

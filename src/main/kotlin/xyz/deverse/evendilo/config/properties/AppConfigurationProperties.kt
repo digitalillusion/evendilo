@@ -2,7 +2,6 @@ package xyz.deverse.evendilo.config.properties
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Configuration
-import xyz.deverse.evendilo.importer.business.EntityFactory
 import xyz.deverse.evendilo.logger
 import javax.annotation.PostConstruct
 

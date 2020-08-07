@@ -10,7 +10,6 @@ import xyz.deverse.evendilo.model.woocommerce.Image
 import xyz.deverse.evendilo.model.woocommerce.Product
 import xyz.deverse.evendilo.model.woocommerce.ProductType
 import xyz.deverse.importer.csv.CsvFileReader
-import java.lang.IllegalArgumentException
 
 @Qualifier
 @Target(AnnotationTarget.FUNCTION)
