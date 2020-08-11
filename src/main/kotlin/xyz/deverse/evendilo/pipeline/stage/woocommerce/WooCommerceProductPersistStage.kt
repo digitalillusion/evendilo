@@ -10,10 +10,26 @@ class WooCommerceProductPersistStage(var api: WooCommerceApi) : PersistStage<Pro
 
     init {
         addAction(PersistStageAction(PersistActionType.SAVE, updater = { target, _ -> save(target) }))
+        addAction(PersistStageAction(PersistActionType.UPDATE, updater = { target, _ -> update(target) }))
     }
 
     private fun save(target: Product): Product {
-        return api.createProduct(target)
+        var created = api.createProduct(target);
+        target.id = created.id
+        target.attributes.replaceAll { api.createAttribute(it) }
+        target.variations.replaceAll { api.createProductVariation(target, it) }
+        return target
+    }
+
+    private fun update(target: Product): Product {
+        target.variations.replaceAll { variation ->
+            if (variation.id == null) {
+                variation.attributes.replaceAll { api.createAttribute(it) }
+                api.createProductVariation(target, variation)
+            }
+            variation
+        }
+        return target
     }
 
 }

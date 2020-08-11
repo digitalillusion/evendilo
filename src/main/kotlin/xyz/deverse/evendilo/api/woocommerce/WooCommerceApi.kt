@@ -1,38 +1,42 @@
 package xyz.deverse.evendilo.api.woocommerce
 
 import org.springframework.boot.web.client.RestTemplateBuilder
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import xyz.deverse.evendilo.config.properties.AppConfigurationProperties
-import xyz.deverse.evendilo.model.woocommerce.Category
-import xyz.deverse.evendilo.model.woocommerce.Product
+import xyz.deverse.evendilo.model.woocommerce.*
+
 
 @Service
-class WooCommerceApi(var appConfigProperties: AppConfigurationProperties, var restTemplatesBuilder: RestTemplateBuilder) {
+class WooCommerceApi(var appConfigProperties: AppConfigurationProperties, var restTemplateBuilder: RestTemplateBuilder) {
 
     val categoryCache = HashMap<String, Array<Category>?>()
+    val attributeCache = mutableListOf<Attribute>()
 
     private fun rest() : RestTemplate {
         for (config in appConfigProperties.woocommerce) {
             val credentials = config.credentials;
             // TODO find the correct one according to the config.identifier
-            return restTemplatesBuilder
+            return restTemplateBuilder
                     .rootUri(config.url)
                     .basicAuthentication(credentials.username, credentials.password)
+                    .requestFactory(HttpComponentsClientHttpRequestFactory::class.java)
                     .build()
         }
-        return restTemplatesBuilder.build()
+        return restTemplateBuilder.build()
     }
 
     fun refreshCache() {
         categoryCache.clear()
+        attributeCache.clear()
     }
 
-    fun findCategories(search: String = "", exact: Boolean) : List<Category> {
+    fun findCategoriesByName(search: String, exact: Boolean) : List<Category> {
         val categories = categoryCache
                 .getOrPut(search)  { rest().getForObject("/wp-json/wc/v3/products/categories?search={search}", Array<Category>::class.java, search) }
 
-        if (search.isEmpty() || categories == null || !exact) {
+        if (categories == null || !exact) {
             return categories?.asList() ?: listOf()
         }
 
@@ -40,12 +44,59 @@ class WooCommerceApi(var appConfigProperties: AppConfigurationProperties, var re
         return if (exactMatch != null) { listOf(exactMatch) } else { listOf() }
     }
 
-    fun findCategory(search: String = "") : Category? {
-        val categories = findCategories(search, true)
+    fun findCategory(search: Category?) : Category? {
+        val categories = findCategoriesByName(search?.name ?: "", true)
         return if (categories.isNotEmpty()) categories[0] else null
     }
 
     fun createProduct(product: Product) : Product {
         return rest().postForObject("/wp-json/wc/v3/products", product, Product::class.java)!!
+    }
+
+    fun findProduct(product: Product) : Product? {
+        val products = rest().getForObject("/wp-json/wc/v3/products?search=${product.name}", Array<Product>::class.java)
+        if (products == null || products?.size == 1) {
+            return products?.get(0) ?: null
+        }
+        throw IllegalStateException("Obtained more than 1 product for name=${product.name}: ${products?.map { it.id }.joinToString(", ")}")
+    }
+
+
+    fun findAttribute(attribute: Attribute) : Attribute? {
+        if (attributeCache.isEmpty() || !attributeCache.any() { it.name == attribute.name }) {
+            attributeCache.clear()
+            val attributes = rest().getForObject("/wp-json/wc/v3/products/attributes", Array<Attribute>::class.java)
+            attributes?.forEach { attributeCache.add(it) }
+        }
+        return attributeCache.find { it.name == attribute.name } ?: null
+    }
+
+    fun findAttributeTerms(attribute: Attribute) : MutableList<AttributeTerm> {
+        return rest().getForObject("/wp-json/wc/v3/products/attributes/{attributeId}/terms", Array<AttributeTerm>::class.java, attribute.id)!!.toMutableList()
+    }
+
+    fun createAttribute(attribute: Attribute): Attribute {
+        var result = attribute
+        if (attribute.id == null) {
+            result = rest().postForObject("/wp-json/wc/v3/products/attributes", attribute, Attribute::class.java)!!
+        }
+
+        var resultOptions = mutableListOf<AttributeTerm>()
+        for (option in attribute.options) {
+            if (option.id == null) {
+                resultOptions.add(rest().postForObject("/wp-json/wc/v3/products/attributes/{attributeId}/terms", option, AttributeTerm::class.java, result.id)!!)
+            } else {
+                resultOptions.add(option)
+            }
+        }
+        result.options = resultOptions
+        return result
+    }
+
+    fun createProductVariation(product: Product, variation: ProductVariation) : ProductVariation {
+        if (variation.id != null) {
+            return variation
+        }
+        return rest().postForObject("/wp-json/wc/v3/products/{productId}/variations", variation, ProductVariation::class.java, product.id)!!
     }
 }

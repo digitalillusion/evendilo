@@ -6,14 +6,17 @@ import org.springframework.transaction.annotation.Transactional
 import xyz.deverse.evendilo.importer.business.EntityFactory
 import xyz.deverse.evendilo.importer.business.ImporterBusinessDelegate
 import xyz.deverse.evendilo.logger
+import xyz.deverse.evendilo.model.Destination
 import xyz.deverse.evendilo.model.Family
 import xyz.deverse.evendilo.model.Model
+import xyz.deverse.evendilo.model.woocommerce.Product
 import xyz.deverse.evendilo.pipeline.stage.ImportStage
 import xyz.deverse.evendilo.pipeline.stage.PersistStage
 import xyz.deverse.evendilo.pipeline.stage.woocommerce.WooCommerceProductPersistStage
 import xyz.deverse.importer.*
 import xyz.deverse.importer.generic.ImportTag
 import xyz.deverse.importer.pipeline.Pipeline
+import java.lang.IllegalArgumentException
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Consumer
@@ -53,11 +56,13 @@ class PipelineFactory<T : Model> (
 
     private fun createPersistPipeline(importStrategyFactory: ImportStrategyFactory, importer: Importer<T, ImportLine>): AbstractPipeline<T> {
         val entityFactory: EntityFactory
-        val optionalImportTag: Optional<out ImportTag> = importer.importTags.stream().filter { importTag -> importTag.javaClass == Family::class.java }.findFirst()
+        val optionalImportTag: Optional<out ImportTag> = importer.importTags.stream().filter {
+            importTag -> Destination::class.sealedSubclasses.contains(importTag::class)
+        }.findFirst()
         entityFactory = if (optionalImportTag.isPresent) {
             importerBusinessDelegate.getEntityFactoryFor(optionalImportTag.get())
         } else {
-            importerBusinessDelegate.getEntityFactoryFor(Family.Standard)
+            throw IllegalArgumentException("A destination import tag to use for the import is mandatory")
         }
         @Suppress("UNCHECKED_CAST")
         val strategy = importStrategyFactory.createImportStrategy(importer) as ImportStrategy<T, ImportLine>
@@ -132,7 +137,7 @@ class PipelineFactory<T : Model> (
 
     @Suppress("UNCHECKED_CAST")
     private fun resolvePersistStageForType(type: Class<out Model?>?): PersistStage<T> {
-        if (xyz.deverse.evendilo.model.woocommerce.Product::class.java.isAssignableFrom(type)) {
+        if (Product::class.java.isAssignableFrom(type)) {
             return wooCommerceProductPersistStage as PersistStage<T>
         }
         return object : PersistStage<T>() {
