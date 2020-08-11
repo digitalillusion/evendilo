@@ -1,7 +1,9 @@
 package xyz.deverse.evendilo.importer.standard.woocommerce.mappers
 
 import org.mapstruct.*
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.stereotype.Component
+import xyz.deverse.evendilo.config.properties.AppConfigurationProperties
 import xyz.deverse.evendilo.importer.standard.WooCommerceEntityFactory
 import xyz.deverse.evendilo.importer.standard.woocommerce.StandardWooCommerceProductCsvLine
 import xyz.deverse.evendilo.model.woocommerce.*
@@ -36,15 +38,23 @@ class ProductMapperHelper {
 interface StandardWooCommerceProductMapper : CsvFileReader.CsvImportMapper<Product, StandardWooCommerceProductCsvLine> {
 
     @Component
-    class Finalizer {
+    class Finalizer(var appConfigProperties: AppConfigurationProperties) {
         @AfterMapping
         fun mapAttributes(csvLine: StandardWooCommerceProductCsvLine, @MappingTarget product: Product) {
-            // TODO: extract attr name
-            product.attributes = mutableListOf(
-                    Attribute(null, "DISEGNO", mutableListOf(AttributeTerm(null, csvLine.design))),
-                    Attribute(null, "COLORE", mutableListOf(AttributeTerm(null, csvLine.color))),
-                    Attribute(null, "MISURA", mutableListOf(AttributeTerm(null, csvLine.size)))
-            )
+            val attributes = mutableListOf<String>()
+            for (config in appConfigProperties.woocommerce) {
+                val importerConfig = config.importerConfig;
+                // TODO find the correct one according to the config.identifier
+                importerConfig.attributes.split(",").toList().map { it.trim() }.forEach { attributes.add(it) }
+                break
+            }
+            val csvLineAttrs = arrayOf(csvLine.attr0, csvLine.attr1, csvLine.attr2, csvLine.attr3,
+                    csvLine.attr4, csvLine.attr5, csvLine.attr6, csvLine.attr7, csvLine.attr8, csvLine.attr9)
+
+            product.attributes = mutableListOf()
+            attributes.forEachIndexed { index, attribute ->
+                product.attributes.add(Attribute(null, attribute, mutableListOf(AttributeTerm(null, csvLineAttrs[index])))
+            )}
         }
     }
 

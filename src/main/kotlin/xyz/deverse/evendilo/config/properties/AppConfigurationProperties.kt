@@ -10,9 +10,14 @@ data class WooCommerceCredentials (
     var password: String = ""
 )
 
+data class WooCommerceImporterConfig (
+    var attributes: String = ""
+)
+
 data class WooCommerceConfigurationProperties (
     var identifier: String = "",
     var url: String = "",
+    var importerConfig: WooCommerceImporterConfig = WooCommerceImporterConfig(),
     var credentials: WooCommerceCredentials = WooCommerceCredentials()
 )
 

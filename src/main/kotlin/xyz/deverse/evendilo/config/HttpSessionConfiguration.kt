@@ -8,7 +8,10 @@ import org.springframework.security.web.authentication.session.RegisterSessionAu
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy
 import org.springframework.session.MapSessionRepository
 import org.springframework.session.config.annotation.web.http.EnableSpringHttpSession
+import org.springframework.session.web.http.CookieSerializer
+import org.springframework.session.web.http.DefaultCookieSerializer
 import java.util.concurrent.ConcurrentHashMap
+
 
 @Configuration
 @EnableSpringHttpSession
@@ -23,6 +26,12 @@ class HttpSessionConfiguration {
         return MapSessionRepository(ConcurrentHashMap())
     }
 
+    @Bean
+    fun cookieSerializer(): CookieSerializer {
+        val serializer = DefaultCookieSerializer()
+        serializer.setSameSite("None")
+        return serializer
+    }
 
     @Bean
     protected fun sessionAuthenticationStrategy(): SessionAuthenticationStrategy {

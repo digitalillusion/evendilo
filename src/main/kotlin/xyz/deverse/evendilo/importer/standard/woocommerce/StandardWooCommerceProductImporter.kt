@@ -19,18 +19,26 @@ import xyz.deverse.importer.csv.CsvFileReader
 
 
 data class StandardWooCommerceProductCsvLine(
+        var type: String = "",
         @CsvColumn(0) var sku: String = "",
         @CsvColumn(1) var name: String = "",
-        @CsvColumn(2) var design: String = "",
-        @CsvColumn(3) var color: String = "",
-        @CsvColumn(4) var size: String = "",
-        @CsvColumn(5) var sale_price: String = "",
-        @CsvColumn(6) var regular_price: String = "",
-        @CsvColumn(7) var short_description: String = "",
-        @CsvColumn(8) var description: String = "",
-        @CsvColumn(9) var categoryNames: String = "",
-        @CsvColumn(10) var imageUrls: String = "",
-        var type: String = ""
+        @CsvColumn(2) var sale_price: String = "",
+        @CsvColumn(3) var regular_price: String = "",
+        @CsvColumn(4) var short_description: String = "",
+        @CsvColumn(5) var description: String = "",
+        @CsvColumn(6) var categoryNames: String = "",
+        @CsvColumn(7) var imageUrls: String = "",
+
+        @CsvColumn(8) var attr0: String = "",
+        @CsvColumn(9) var attr1: String = "",
+        @CsvColumn(10) var attr2: String = "",
+        @CsvColumn(11) var attr3: String = "",
+        @CsvColumn(12) var attr4: String = "",
+        @CsvColumn(13) var attr5: String = "",
+        @CsvColumn(14) var attr6: String = "",
+        @CsvColumn(15) var attr7: String = "",
+        @CsvColumn(16) var attr8: String = "",
+        @CsvColumn(17) var attr9: String = ""
 ) : CsvFileReader.CsvLine<Product>()
 
 @Service

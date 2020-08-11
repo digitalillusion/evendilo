@@ -19,6 +19,7 @@ import xyz.deverse.importer.pipeline.Pipeline
 import java.lang.IllegalArgumentException
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.function.BiConsumer
 import java.util.function.Consumer
 
 @Service
@@ -110,8 +111,11 @@ class PipelineFactory<T : Model> (
         return object : AbstractPipeline<T>(importStage, persistStage) {
             @Suppress("UNCHECKED_CAST")
             override fun run() {
+                strategy.lineProcessors.add(Consumer { line: ImportLine ->
+                    persistLine(line.nodes as MutableCollection<T>, line.excludedIds, persistStage, line.actionType, line.saveDepth)
+                })
+
                 importStage.run()
-                strategy.results.forEach { line -> persistLine(line.nodes as MutableCollection<T>, line.excludedIds, persistStage, line.actionType, line.saveDepth) }
             }
 
             override val entityFactory: EntityFactory

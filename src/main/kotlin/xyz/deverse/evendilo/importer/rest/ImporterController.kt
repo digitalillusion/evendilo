@@ -67,7 +67,7 @@ class ImporterController(val importerProcessStatusCache: ImporterProcessStatusCa
     }
 
     @ApiOperation("Restart the import of an entity")
-    @PutMapping("/import/{family}/{model}/{destination}")
+    @PutMapping("/import/{family}/{destination}")
     fun importerProcessRestart( 
             @ApiParam(value = "The family of the entity", allowableValues = "standard", allowEmptyValue = false) @PathVariable("family") family: Family,
             @ApiParam(value = "The destination of the entity", allowableValues = "woocommerce", allowEmptyValue = false) @PathVariable("destination") destination: Destination): ImporterProcessStatus {

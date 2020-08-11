@@ -32,6 +32,8 @@ variables:
   woocommerce:
     - identifier: "pierretappeti"
       url: ${EVENDILO_PIERRETAPPETI_URL}
+      importerConfig:
+        attributes: ${EVENDILO_PIERRETAPPETI_IMPORTER_ATTRIBUTES}
       credentials:
         username: ${EVENDILO_PIERRETAPPETI_API_USERNAME}
         password: ${EVENDILO_PIERRETAPPETI_API_PASSWORD}
@@ -41,7 +43,7 @@ logging:
     org:
       springframework:
         security: DEBUG
-      apache:
-        http: DEBUG
-    httpclient:
-      wire: DEBUG
+#      apache:
+#      http: DEBUG
+#   httpclient:
+#     wire: DEBUG
