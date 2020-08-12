@@ -1,8 +1,6 @@
 package xyz.deverse.evendilo.model.woocommerce
 
 import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.annotation.JsonSetter
-import com.fasterxml.jackson.databind.JsonNode
 import xyz.deverse.evendilo.model.Model
 
 

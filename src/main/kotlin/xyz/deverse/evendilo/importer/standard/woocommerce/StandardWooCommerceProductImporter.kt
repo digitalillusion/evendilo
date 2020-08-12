@@ -9,7 +9,6 @@ import xyz.deverse.evendilo.importer.ImportLineException
 import xyz.deverse.evendilo.model.Destination
 import xyz.deverse.evendilo.model.Family
 import xyz.deverse.evendilo.model.woocommerce.Attribute
-import xyz.deverse.evendilo.model.woocommerce.AttributeTerm
 import xyz.deverse.evendilo.model.woocommerce.Product
 import xyz.deverse.evendilo.model.woocommerce.ProductVariation
 import xyz.deverse.importer.AbstractImporter

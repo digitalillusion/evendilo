@@ -20,11 +20,11 @@ spring:
             redirect-uri: ${EVENDILO_ORIGIN}/login/oauth2/code/pierretappeti
         provider:
           pierretappeti:
-            authorization-uri: ${EVENDILO_PIERRETAPPETI_URL}/wp-json/moserver/authorize
-            token-uri: ${EVENDILO_PIERRETAPPETI_URL}/wp-json/moserver/token
-            user-info-uri: ${EVENDILO_PIERRETAPPETI_URL}/wp-json/moserver/resource
+            authorization-uri: ${EVENDILO_PIERRETAPPETI_URL}/oauth/authorize/
+            token-uri: ${EVENDILO_PIERRETAPPETI_URL}/oauth/token/
+            user-info-uri: ${EVENDILO_PIERRETAPPETI_URL}/oauth/me/
             user-info-authentication-method: basic
-            user-name-attribute: username
+            user-name-attribute: user_login
 
 
 variables:

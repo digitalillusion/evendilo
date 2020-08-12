@@ -29,6 +29,9 @@ class HttpSessionConfiguration {
     @Bean
     fun cookieSerializer(): CookieSerializer {
         val serializer = DefaultCookieSerializer()
+        serializer.setCookieName("JSESSIONID")
+        serializer.setCookiePath("/")
+        serializer.setDomainNamePattern("^.+?\\.(\\w+\\.[a-z]+)$")
         serializer.setSameSite("None")
         return serializer
     }

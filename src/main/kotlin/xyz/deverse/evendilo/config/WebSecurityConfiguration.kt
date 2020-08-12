@@ -6,6 +6,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository
 import org.springframework.security.web.authentication.HttpStatusEntryPoint
@@ -16,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.cors.CorsConfigurationSource
 import xyz.deverse.evendilo.config.properties.AppConfigurationProperties
-import java.security.Principal
 
 @Configuration
 @RestController
@@ -31,11 +31,15 @@ class WebSecurityConfiguration(
   val defaultTargetUrl = appConfigProperties.corsAllowedOrigin + "/"
 
   @RequestMapping("/session")
-  fun session (@AuthenticationPrincipal principal: Principal?): Map<String, Any> {
-    if (principal == null) {
+  fun session (@AuthenticationPrincipal token: OAuth2AuthenticationToken?): Map<String, Any> {
+    if (token == null) {
       return mapOf()
     }
-    return mapOf(Pair("name", principal.name))
+    return mapOf(
+      Pair("domain", token.authorizedClientRegistrationId),
+      Pair("email", token.principal.getAttribute("user_email")),
+      Pair("name", token.principal.getAttribute("user_login"))
+    )
   }
 
   fun logoutSuccessHandler() : OidcClientInitiatedLogoutSuccessHandler {
@@ -57,8 +61,7 @@ class WebSecurityConfiguration(
        .anyRequest().authenticated()
     }
     .exceptionHandling { e -> e.authenticationEntryPoint(HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)) }
-    //.csrf { c -> c.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()) }
-    .csrf().disable()
+    .csrf { c -> c.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()) }
     .logout()
       .logoutSuccessHandler(logoutSuccessHandler())
       .clearAuthentication(true)

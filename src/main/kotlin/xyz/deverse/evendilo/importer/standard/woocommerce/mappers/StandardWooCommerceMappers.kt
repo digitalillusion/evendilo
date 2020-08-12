@@ -1,7 +1,8 @@
 package xyz.deverse.evendilo.importer.standard.woocommerce.mappers
 
 import org.mapstruct.*
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import org.springframework.stereotype.Component
 import xyz.deverse.evendilo.config.properties.AppConfigurationProperties
 import xyz.deverse.evendilo.importer.standard.WooCommerceEntityFactory
@@ -42,11 +43,13 @@ interface StandardWooCommerceProductMapper : CsvFileReader.CsvImportMapper<Produ
         @AfterMapping
         fun mapAttributes(csvLine: StandardWooCommerceProductCsvLine, @MappingTarget product: Product) {
             val attributes = mutableListOf<String>()
+            var token = SecurityContextHolder.getContext().authentication as OAuth2AuthenticationToken
             for (config in appConfigProperties.woocommerce) {
                 val importerConfig = config.importerConfig;
-                // TODO find the correct one according to the config.identifier
-                importerConfig.attributes.split(",").toList().map { it.trim() }.forEach { attributes.add(it) }
-                break
+                if (token.authorizedClientRegistrationId == config.identifier) {
+                    importerConfig.attributes.split(",").toList().map { it.trim() }.forEach { attributes.add(it) }
+                    break
+                }
             }
             val csvLineAttrs = arrayOf(csvLine.attr0, csvLine.attr1, csvLine.attr2, csvLine.attr3,
                     csvLine.attr4, csvLine.attr5, csvLine.attr6, csvLine.attr7, csvLine.attr8, csvLine.attr9)

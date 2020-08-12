@@ -2,10 +2,13 @@ package xyz.deverse.evendilo.api.woocommerce
 
 import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import xyz.deverse.evendilo.config.properties.AppConfigurationProperties
 import xyz.deverse.evendilo.model.woocommerce.*
+import java.security.InvalidParameterException
 
 
 @Service
@@ -15,16 +18,18 @@ class WooCommerceApi(var appConfigProperties: AppConfigurationProperties, var re
     val attributeCache = mutableListOf<Attribute>()
 
     private fun rest() : RestTemplate {
+        var token = SecurityContextHolder.getContext().authentication as OAuth2AuthenticationToken
         for (config in appConfigProperties.woocommerce) {
             val credentials = config.credentials;
-            // TODO find the correct one according to the config.identifier
-            return restTemplateBuilder
-                    .rootUri(config.url)
-                    .basicAuthentication(credentials.username, credentials.password)
-                    .requestFactory(HttpComponentsClientHttpRequestFactory::class.java)
-                    .build()
+            if (token.authorizedClientRegistrationId == config.identifier) {
+                return restTemplateBuilder
+                        .rootUri(config.url)
+                        .basicAuthentication(credentials.username, credentials.password)
+                        .requestFactory(HttpComponentsClientHttpRequestFactory::class.java)
+                        .build()
+            }
         }
-        return restTemplateBuilder.build()
+        throw InvalidParameterException("OAuth2AuthenticationToken.authorizedClientRegistrationId cannot be matched with any WooCommerce configuration: ${token.authorizedClientRegistrationId }")
     }
 
     fun refreshCache() {
@@ -55,10 +60,10 @@ class WooCommerceApi(var appConfigProperties: AppConfigurationProperties, var re
 
     fun findProduct(product: Product) : Product? {
         val products = rest().getForObject("/wp-json/wc/v3/products?search=${product.name}", Array<Product>::class.java)
-        if (products == null || products?.size == 1) {
-            return products?.get(0) ?: null
+        if (products == null || products.size == 1) {
+            return products?.get(0)
         }
-        throw IllegalStateException("Obtained more than 1 product for name=${product.name}: ${products?.map { it.id }.joinToString(", ")}")
+        throw IllegalStateException("Obtained more than 1 product for name=${product.name}: ${products.map { it.id }.joinToString(", ")}")
     }
 
 
@@ -68,7 +73,7 @@ class WooCommerceApi(var appConfigProperties: AppConfigurationProperties, var re
             val attributes = rest().getForObject("/wp-json/wc/v3/products/attributes", Array<Attribute>::class.java)
             attributes?.forEach { attributeCache.add(it) }
         }
-        return attributeCache.find { it.name == attribute.name } ?: null
+        return attributeCache.find { it.name == attribute.name }
     }
 
     fun findAttributeTerms(attribute: Attribute) : MutableList<AttributeTerm> {
