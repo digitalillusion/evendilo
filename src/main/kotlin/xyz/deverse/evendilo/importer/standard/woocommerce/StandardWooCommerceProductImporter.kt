@@ -43,11 +43,11 @@ data class StandardWooCommerceProductCsvLine(
 class StandardWooCommerceProductImporter(var api: WooCommerceApi) :
         AbstractImporter<Product, ImportMapper.MappedLine<Product>>(Family.Standard, Destination.WooCommerce) {
 
-    override fun reinitialize() {
-        api.refreshCache()
-    }
-
     override fun onParseLine(line: ImportMapper.MappedLine<Product>) {
+        if (line.index <= 1) {
+            api.refreshCache()
+        }
+
         replaceList (line.nodes) { node ->
             replaceList(node.categories) { nodeCategory ->
                 api.findCategory(nodeCategory)
@@ -61,14 +61,14 @@ class StandardWooCommerceProductImporter(var api: WooCommerceApi) :
                         val existingOption = existingOptions.find { it.name == nodeAttributeOption.name }
                         existingOption ?: nodeAttributeOption
                     }
-                    Attribute(existing.id, existing.name, nodeAttribute.options)
+                    Attribute.Multiple(existing.id, existing.name, nodeAttribute.options)
                 } else {
                     nodeAttribute
                 }
             }
 
             val validAttributes = node.attributes.filter { attribute: Attribute ->
-                attribute.name.isNotBlank() && attribute.option?.isNotBlank() ?: false
+                attribute.name.isNotBlank() && attribute.asSingle().option?.asName()?.name?.isNotBlank() ?: false
             }.toMutableList()
             val variationAttributes = mutableListOf<Attribute>()
             validAttributes.forEach { attribute ->
@@ -83,7 +83,7 @@ class StandardWooCommerceProductImporter(var api: WooCommerceApi) :
                 a
             }.toMutableList()
 
-            val sku = node.sku + "_" + variationAttributes.map { a: Attribute -> a.option }.joinToString("_").replace("\\s+".toRegex(), "-")
+            val sku = node.sku + "_" + variationAttributes.map { a: Attribute -> a.asSingle().option?.asName()?.name }.joinToString("_").replace("\\s+".toRegex(), "-")
             result.variations.add(ProductVariation(
                 null,
                 sku,

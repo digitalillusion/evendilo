@@ -1,7 +1,9 @@
 package xyz.deverse.evendilo.model.woocommerce
 
 import com.fasterxml.jackson.annotation.*
+import com.sun.org.apache.xpath.internal.operations.Bool
 import xyz.deverse.evendilo.model.Model
+import java.security.InvalidParameterException
 import kotlin.reflect.full.isSubclassOf
 
 
@@ -30,31 +32,69 @@ enum class ProductType {
     }
 }
 
-data class Attribute (
+sealed class Attribute (
         override val id: Long?,
-        var name: String = "",
-        var options: MutableList<AttributeTerm> = mutableListOf()
+        open var name: String = "",
+        open var options: MutableList<AttributeTerm> = mutableListOf()
 ): Model {
-    val option: String?
-        @JsonIgnore
-        get() =  if (options.size > 0) { options[0].name } else { null }
+
+    fun asSingle() : Single {
+        return Single(this.id, this.name, this.options[0])
+    }
+
+    fun copy(id: Long? = null, name: String? = null, options: MutableList<AttributeTerm>? = null): Attribute {
+        if (options != null && options.size == 1 || this.options.size == 1) {
+            return Single(id ?: this.id, name ?: this.name, options?.get(0) ?: this.options[0])
+        }
+        return Multiple(id ?: this.id, name ?: this.name, options ?: this.options)
+    }
+
+    class Multiple(id: Long?, name: String, options: MutableList<AttributeTerm>) : Attribute(id, name, options) {
+        val variation: Boolean = true
+        val visible: Boolean = true
+    }
+
+    class Single(id: Long?, name: String, option: AttributeTerm) : Attribute(id, name, mutableListOf(option)) {
+        val option: AttributeTerm?
+            get() = if (super.options.size > 0) { super.options[0] } else { null }
+
+        override var name: String = ""
+            @JsonIgnore
+            get() = super.name
+
+        override var options: MutableList<AttributeTerm> = mutableListOf(option)
+            @JsonIgnore
+            get() = super.options
+    }
+
+    companion object {
+        @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+        @JvmStatic
+        private fun deserialize(obj: Any): Attribute {
+            val map = obj as Map<*, *>
+            val id= map["id"] as Int
+            val name= map["name"] as String
+            val options= map["options"]  ?: mutableListOf<String>()
+            val terms = (options as MutableList<String>).map { AttributeTerm.Name(it) as AttributeTerm }.toMutableList()
+            return Multiple(id.toLong(), name, terms)
+        }
+    }
+
 }
 
 sealed class AttributeTerm (
         override val id: Long?,
         var name: String
 ): Model {
-    constructor() : this(null, "")
-
     fun asName() : Name {
         return Name(name)
     }
 
     fun copy(id: Long? = null, name: String? = null): AttributeTerm {
         if (id == null && this.id == null) {
-            return AttributeTerm.Name(name ?: this.name)
+            return Name(name ?: this.name)
         }
-        return AttributeTerm.Term(id ?: this.id!!, name ?: this.name)
+        return Term(id ?: this.id!!, name ?: this.name)
     }
 
     class Name(name: String) : AttributeTerm(null, name) {

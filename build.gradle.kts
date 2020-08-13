@@ -26,6 +26,7 @@ dependencies {
 
 	implementation(files("lib/importer-lib-1.2.1.jar"))
 	implementation("org.apache.httpcomponents:httpclient:4.5.12")
+	implementation("org.apache.commons:commons-text:1.9")
 	implementation("com.google.guava:guava:29.0-jre")
 	implementation("org.hibernate:hibernate-validator:5.2.4.Final")
 	implementation("javax.validation:validation-api:2.0.1.Final")

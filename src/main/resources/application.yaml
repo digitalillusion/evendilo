@@ -45,5 +45,5 @@ logging:
         security: DEBUG
 #      apache:
 #        http: DEBUG
-#    httpclient:
-#      wire: DEBUG
+#      httpclient:
+#        wire: DEBUG

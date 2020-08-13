@@ -4,7 +4,9 @@ import xyz.deverse.evendilo.model.woocommerce.AttributeTerm
 
 
 inline fun<T> replaceList(list: MutableList<T>, replacer: (T) -> T) {
-    var replacement = list.map { replacer(it) }
+    var tempList = mutableListOf<T>()
+    list.forEach { tempList.add(it) }
+    var replacement = tempList.map { replacer(it) }
     list.clear()
     replacement.forEach { list.add(it) }
 }

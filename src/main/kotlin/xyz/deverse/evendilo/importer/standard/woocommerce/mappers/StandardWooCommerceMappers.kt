@@ -56,7 +56,7 @@ interface StandardWooCommerceProductMapper : CsvFileReader.CsvImportMapper<Produ
 
             product.attributes = mutableListOf()
             attributes.forEachIndexed { index, attribute ->
-                product.attributes.add(Attribute(null, attribute, mutableListOf(AttributeTerm.Name(csvLineAttrs[index])))
+                product.attributes.add(Attribute.Multiple(null, attribute, mutableListOf(AttributeTerm.Name(csvLineAttrs[index])))
             )}
         }
     }
@@ -64,6 +64,8 @@ interface StandardWooCommerceProductMapper : CsvFileReader.CsvImportMapper<Produ
     @Mappings(value = [
         Mapping(target = "id", ignore = true),
         Mapping(target = "type", expression = "java(ProductType.variable)"),
+        Mapping(target = "description", expression = "java(org.apache.commons.text.StringEscapeUtils.escapeJava(csvLine.getDescription()))"),
+        Mapping(target = "short_description", expression = "java(org.apache.commons.text.StringEscapeUtils.escapeJava(csvLine.getShort_description()))"),
         Mapping(source = "imageUrls", target = "images", qualifiedByName = ["toImage"]),
         Mapping(source = "categoryNames", target = "categories", qualifiedByName = ["toCategory"])
     ])
