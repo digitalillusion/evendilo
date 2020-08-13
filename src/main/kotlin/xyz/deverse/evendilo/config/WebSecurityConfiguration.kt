@@ -61,7 +61,8 @@ class WebSecurityConfiguration(
        .anyRequest().authenticated()
     }
     .exceptionHandling { e -> e.authenticationEntryPoint(HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)) }
-    .csrf { c -> c.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()) }
+    //.csrf { c -> c.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()) }
+    .csrf().disable()
     .logout()
       .logoutSuccessHandler(logoutSuccessHandler())
       .clearAuthentication(true)
