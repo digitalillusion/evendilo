@@ -44,6 +44,6 @@ logging:
       springframework:
         security: DEBUG
 #      apache:
-#      http: DEBUG
-#   httpclient:
-#     wire: DEBUG
+#        http: DEBUG
+#    httpclient:
+#      wire: DEBUG

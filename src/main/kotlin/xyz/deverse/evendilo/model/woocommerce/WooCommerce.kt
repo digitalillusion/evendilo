@@ -1,7 +1,8 @@
 package xyz.deverse.evendilo.model.woocommerce
 
-import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.*
 import xyz.deverse.evendilo.model.Model
+import kotlin.reflect.full.isSubclassOf
 
 
 data class Category (
@@ -10,7 +11,7 @@ data class Category (
 ) : Model
 
 data class Image (
-    var src: String
+    var src: String = ""
 )
 
 enum class ProductType {
@@ -35,18 +36,58 @@ data class Attribute (
         var options: MutableList<AttributeTerm> = mutableListOf()
 ): Model {
     val option: String?
+        @JsonIgnore
         get() =  if (options.size > 0) { options[0].name } else { null }
 }
 
-data class AttributeTerm (
+sealed class AttributeTerm (
         override val id: Long?,
         var name: String
 ): Model {
     constructor() : this(null, "")
 
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    constructor(name: String) : this(null, name)
+    fun asName() : Name {
+        return Name(name)
+    }
+
+    fun copy(id: Long? = null, name: String? = null): AttributeTerm {
+        if (id == null && this.id == null) {
+            return AttributeTerm.Name(name ?: this.name)
+        }
+        return AttributeTerm.Term(id ?: this.id!!, name ?: this.name)
+    }
+
+    class Name(name: String) : AttributeTerm(null, name) {
+        @JsonValue
+        override fun toString(): String {
+            return name
+        }
+    }
+
+    class Term(id: Long, name: String) : AttributeTerm(id, name)
+
+    class NewTerm(id: Long?, name: String) : AttributeTerm(id, name)
+
+    companion object {
+        @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+        @JvmStatic
+        private fun deserialize(obj: Any): AttributeTerm {
+            if (obj::class.isSubclassOf(Map::class)) {
+                val map = obj as Map<*, *>
+                val id= map["id"] as Int?
+                val name= map["name"] as String
+                if (id == null) {
+                    return Name(name)
+                }
+                return Term(id.toLong(), name)
+            } else {
+                return Name(obj.toString())
+            }
+
+        }
+    }
 }
+
 
 data class Product(
         override var id: Long?,
@@ -73,10 +114,11 @@ data class ProductVariation (
         var description: String,
         var regular_price: String,
         var sale_price: String,
+        var images: Image,
         var attributes: MutableList<Attribute>
 ) : Model {
-    constructor() : this(null, "", "", "", "", mutableListOf<Attribute>())
+    constructor() : this(null, "", "", "", "", Image(), mutableListOf<Attribute>())
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    constructor(id: Long) : this(id, "", "", "", "", mutableListOf<Attribute>())
+    constructor(id: Long) : this(id, "", "", "", "", Image(), mutableListOf<Attribute>())
 }

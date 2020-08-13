@@ -16,7 +16,6 @@ class WooCommerceProductPersistStage(var api: WooCommerceApi) : PersistStage<Pro
     private fun save(target: Product): Product {
         var created = api.createProduct(target);
         target.id = created.id
-        target.attributes.replaceAll { api.createAttribute(it) }
         target.variations.replaceAll { api.createProductVariation(target, it) }
         return target
     }
@@ -24,11 +23,16 @@ class WooCommerceProductPersistStage(var api: WooCommerceApi) : PersistStage<Pro
     private fun update(target: Product): Product {
         target.variations.replaceAll { variation ->
             if (variation.id == null) {
+                target.attributes.replaceAll { attribute ->
+                    val optionsToAdd = variation.attributes.find { it.name == attribute.name }?.options ?: mutableListOf()
+                    api.updateAttribute(attribute, optionsToAdd)
+                }
                 variation.attributes.replaceAll { api.createAttribute(it) }
                 api.createProductVariation(target, variation)
             }
             variation
         }
+        api.updateProduct(target);
         return target
     }
 

@@ -3,14 +3,13 @@ package xyz.deverse.evendilo.importer.standard.woocommerce
 
 import org.springframework.stereotype.Service
 import xyz.deverse.evendilo.api.woocommerce.WooCommerceApi
+import xyz.deverse.evendilo.functions.mergeDistinct
 import xyz.deverse.evendilo.functions.replaceList
 import xyz.deverse.evendilo.importer.ErrorCode
 import xyz.deverse.evendilo.importer.ImportLineException
 import xyz.deverse.evendilo.model.Destination
 import xyz.deverse.evendilo.model.Family
-import xyz.deverse.evendilo.model.woocommerce.Attribute
-import xyz.deverse.evendilo.model.woocommerce.Product
-import xyz.deverse.evendilo.model.woocommerce.ProductVariation
+import xyz.deverse.evendilo.model.woocommerce.*
 import xyz.deverse.importer.AbstractImporter
 import xyz.deverse.importer.ImportMapper
 import xyz.deverse.importer.csv.CsvColumn
@@ -55,7 +54,7 @@ class StandardWooCommerceProductImporter(var api: WooCommerceApi) :
                         ?: throw ImportLineException(ErrorCode.IMPORT_LINE_ERROR_PRODUCT_CATEGORY)
             }
             replaceList(node.attributes) { nodeAttribute ->
-                var existing = api.findAttribute(nodeAttribute)
+                val existing = api.findAttribute(nodeAttribute)
                 if (existing != null) {
                     val existingOptions = api.findAttributeTerms(existing)
                     replaceList(nodeAttribute.options) { nodeAttributeOption ->
@@ -68,18 +67,31 @@ class StandardWooCommerceProductImporter(var api: WooCommerceApi) :
                 }
             }
 
-            var validNodeAttributes = node.attributes.filter { attribute: Attribute ->
+            val validAttributes = node.attributes.filter { attribute: Attribute ->
                 attribute.name.isNotBlank() && attribute.option?.isNotBlank() ?: false
             }.toMutableList()
+            val variationAttributes = mutableListOf<Attribute>()
+            validAttributes.forEach { attribute ->
+                val optionsCopy = attribute.options.map { o -> o.copy() }.toMutableList()
+                variationAttributes.add(attribute.copy(options = optionsCopy))
+            }
 
-            var result = api.findProduct(node) ?: node
+            val result = api.findProduct(node) ?: node
+            result.attributes = validAttributes.map { a ->
+                val existingTerms = result.attributes.find { it.name == a.name }?.options ?: mutableListOf()
+                mergeDistinct(a.options, existingTerms)
+                a
+            }.toMutableList()
+
+            val sku = node.sku + "_" + variationAttributes.map { a: Attribute -> a.option }.joinToString("_").replace("\\s+".toRegex(), "-")
             result.variations.add(ProductVariation(
                 null,
-                node.sku + "_" + validNodeAttributes.map { a: Attribute -> a.option }.joinToString("_"),
-                result.description,
-                result.regular_price,
-                result.sale_price,
-                validNodeAttributes
+                sku,
+                node.description,
+                node.regular_price,
+                node.sale_price,
+                node.images[0],
+                variationAttributes
             ))
             result
         }
