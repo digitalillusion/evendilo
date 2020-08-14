@@ -24,7 +24,7 @@ dependencies {
 	implementation("org.mapstruct:mapstruct:1.4.0.Beta3")
 	kapt("org.mapstruct:mapstruct-processor:1.4.0.Beta3")
 
-	implementation(files("lib/importer-lib-1.2.1.jar"))
+	implementation(files("lib/importer-lib-1.2.2.jar"))
 	implementation("org.apache.httpcomponents:httpclient:4.5.12")
 	implementation("org.apache.commons:commons-text:1.9")
 	implementation("com.google.guava:guava:29.0-jre")
@@ -50,6 +50,8 @@ dependencies {
 	implementation("org.springframework.security:spring-security-messaging")
 	implementation("org.springframework.integration:spring-integration-security")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+	implementation("org.springframework.retry:spring-retry:1.3.0")
+	implementation("org.springframework:spring-aspects")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")

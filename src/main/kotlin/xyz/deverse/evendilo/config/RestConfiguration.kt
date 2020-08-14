@@ -4,7 +4,13 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
 import org.springframework.http.MediaType
+import org.springframework.retry.RetryPolicy
+import org.springframework.retry.backoff.FixedBackOffPolicy
+import org.springframework.retry.policy.ExceptionClassifierRetryPolicy
+import org.springframework.retry.policy.SimpleRetryPolicy
+import org.springframework.retry.support.RetryTemplate
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean
+import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
@@ -42,4 +48,23 @@ class RestConfiguration(var appConfigProperties: AppConfigurationProperties) : W
         source.registerCorsConfiguration("/**", config)
         return source
     }
+
+    @Bean
+    fun apiRetryTemplate(): RetryTemplate {
+        val simpleRetryPolicy = SimpleRetryPolicy()
+        simpleRetryPolicy.maxAttempts = 2
+        val backOffPolicy = FixedBackOffPolicy()
+        backOffPolicy.backOffPeriod = 5000 // 5ms
+        val template = RetryTemplate()
+
+        val policyMap: MutableMap<Class<out Throwable?>, RetryPolicy> = HashMap()
+        policyMap[ResourceAccessException::class.java] = simpleRetryPolicy
+        val retryPolicy = ExceptionClassifierRetryPolicy()
+        retryPolicy.setPolicyMap(policyMap)
+
+        template.setRetryPolicy(retryPolicy)
+        template.setBackOffPolicy(backOffPolicy)
+        return template
+    }
+
 }

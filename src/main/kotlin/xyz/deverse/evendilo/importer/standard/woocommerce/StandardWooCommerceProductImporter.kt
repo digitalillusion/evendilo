@@ -1,6 +1,5 @@
 package xyz.deverse.evendilo.importer.standard.woocommerce
 
-
 import org.springframework.stereotype.Service
 import xyz.deverse.evendilo.api.woocommerce.WooCommerceApi
 import xyz.deverse.evendilo.functions.mergeDistinct
@@ -9,7 +8,9 @@ import xyz.deverse.evendilo.importer.ErrorCode
 import xyz.deverse.evendilo.importer.ImportLineException
 import xyz.deverse.evendilo.model.Destination
 import xyz.deverse.evendilo.model.Family
-import xyz.deverse.evendilo.model.woocommerce.*
+import xyz.deverse.evendilo.model.woocommerce.Attribute
+import xyz.deverse.evendilo.model.woocommerce.Product
+import xyz.deverse.evendilo.model.woocommerce.ProductVariation
 import xyz.deverse.importer.AbstractImporter
 import xyz.deverse.importer.ImportMapper
 import xyz.deverse.importer.csv.CsvColumn
@@ -43,11 +44,11 @@ data class StandardWooCommerceProductCsvLine(
 class StandardWooCommerceProductImporter(var api: WooCommerceApi) :
         AbstractImporter<Product, ImportMapper.MappedLine<Product>>(Family.Standard, Destination.WooCommerce) {
 
-    override fun onParseLine(line: ImportMapper.MappedLine<Product>) {
-        if (line.index <= 1) {
-            api.refreshCache()
-        }
+    override fun preProcess() {
+        api.refreshCache()
+    }
 
+    override fun onParseLine(line: ImportMapper.MappedLine<Product>) {
         replaceList (line.nodes) { node ->
             replaceList(node.categories) { nodeCategory ->
                 api.findCategory(nodeCategory)
@@ -84,10 +85,11 @@ class StandardWooCommerceProductImporter(var api: WooCommerceApi) :
             }.toMutableList()
 
             val sku = node.sku + "_" + variationAttributes.map { a: Attribute -> a.asSingle().option?.asName()?.name }.joinToString("_").replace("\\s+".toRegex(), "-")
+            val description = if (node != result) { "" } else { node.description }
             result.variations.add(ProductVariation(
                 null,
                 sku,
-                node.description,
+                description,
                 node.regular_price,
                 node.sale_price,
                 node.images[0],

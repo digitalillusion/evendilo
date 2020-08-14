@@ -6,9 +6,9 @@ import org.springframework.http.HttpEntity
 import org.springframework.http.HttpMethod
 import org.springframework.http.ResponseEntity
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
+import org.springframework.retry.support.RetryTemplate
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
-import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.client.exchange
@@ -44,7 +44,7 @@ class WooCommerceApiCache (
 
 @Service
 @Scope
-class WooCommerceApi(var appConfigProperties: AppConfigurationProperties, var restTemplateBuilder: RestTemplateBuilder) {
+class WooCommerceApi(var appConfigProperties: AppConfigurationProperties, var restTemplateBuilder: RestTemplateBuilder, var retryTemplate: RetryTemplate) {
     val logger = logger<WooCommerceApi>()
 
     var caches = HashMap<String, WooCommerceApiCache>()
@@ -83,7 +83,19 @@ class WooCommerceApi(var appConfigProperties: AppConfigurationProperties, var re
 
     fun findCategoriesByName(search: String, exact: Boolean) : List<Category> {
         val categories = cache().categoryCache
-                .getOrPut(search)  { rest().getForObject("/wp-json/wc/v3/products/categories?search={search}", Array<Category>::class.java, search) }
+                .getOrPut(search)  {
+                    logger.info("Searching category $search (exact=$exact)")
+                    var categories = mutableListOf<Category>()
+                    var page = 1
+                    do {
+                        val response = retryTemplate.execute<Array<Category>, Exception> { _ ->
+                            rest().getForObject("/wp-json/wc/v3/products/categories?search={search}&per_page=100&page={page}", Array<Category>::class.java, search, page)!!
+                        }
+                        response.forEach { categories.add(it) }
+                        page++
+                    } while (response.isNotEmpty())
+                    categories.toTypedArray()
+                }
 
         if (categories == null || !exact) {
             return categories?.asList() ?: listOf()
@@ -104,7 +116,9 @@ class WooCommerceApi(var appConfigProperties: AppConfigurationProperties, var re
         }
         convertAttributeTermsToNames(product.attributes)
         logger.info("Creating product ${product.name}")
-        val responseProduct = rest().postForObject("/wp-json/wc/v3/products", product, Product::class.java)!!
+        val responseProduct = retryTemplate.execute<Product, Exception> { _ ->
+            rest().postForObject("/wp-json/wc/v3/products", product, Product::class.java)!!
+        }
         cache().productCache[responseProduct.name] = arrayOf(responseProduct)
         return responseProduct
     }
@@ -116,7 +130,9 @@ class WooCommerceApi(var appConfigProperties: AppConfigurationProperties, var re
         convertAttributeTermsToNames(product.attributes)
         val requestEntity: HttpEntity<Product> = HttpEntity(product)
         logger.info("Updating product ${product.name} (${product.id})")
-        val response: ResponseEntity<Product> = rest().exchange("/wp-json/wc/v3/products/{productId}", HttpMethod.PUT, requestEntity, product.id!!)
+        val response: ResponseEntity<Product> = retryTemplate.execute<ResponseEntity<Product>, Exception> { _ ->
+            rest().exchange("/wp-json/wc/v3/products/{productId}", HttpMethod.PUT, requestEntity, product.id!!)
+        }
         val responseProduct = response.body!!
         cache().productCache[responseProduct.name] = arrayOf(responseProduct)
         return responseProduct
@@ -127,7 +143,9 @@ class WooCommerceApi(var appConfigProperties: AppConfigurationProperties, var re
         val products = cache().productCache
                 .getOrPut(search)  {
                     logger.info("Searching product $search")
-                    rest().getForObject("/wp-json/wc/v3/products?search={search}", Array<Product>::class.java, search)
+                    retryTemplate.execute<Array<Product>, Exception> { _ ->
+                        rest().getForObject("/wp-json/wc/v3/products?search={search}", Array<Product>::class.java, search)
+                    }
                 }
 
         if (products == null || products.isEmpty()) {
@@ -143,7 +161,9 @@ class WooCommerceApi(var appConfigProperties: AppConfigurationProperties, var re
         if (cache().attributeCache.isEmpty() || !cache().attributeCache.any() { it.name == attribute.name }) {
             cache().attributeCache.clear()
             logger.info("Searching attributes")
-            val attributes = rest().getForObject("/wp-json/wc/v3/products/attributes", Array<Attribute>::class.java)
+            val attributes = retryTemplate.execute<Array<Attribute>, Exception> { _ ->
+                rest().getForObject("/wp-json/wc/v3/products/attributes", Array<Attribute>::class.java)
+            }
             attributes?.forEach { cache().attributeCache.add(it) }
         }
         return cache().attributeCache.find { it.name == attribute.name }
@@ -153,8 +173,16 @@ class WooCommerceApi(var appConfigProperties: AppConfigurationProperties, var re
         val attributeTerms = cache().attributeTermCache
                 .getOrPut(attribute.name)  {
                     logger.info("Searching attribute ${attribute.name} terms")
-                    val terms = rest().getForObject("/wp-json/wc/v3/products/attributes/{attributeId}/terms", Array<AttributeTerm>::class.java, attribute.id)
-                    terms ?: arrayOf()
+                    var terms = mutableListOf<AttributeTerm>()
+                    var page = 1
+                    do {
+                        val response = retryTemplate.execute<Array<AttributeTerm>, Exception> { _ ->
+                            rest().getForObject("/wp-json/wc/v3/products/attributes/{attributeId}/terms?search=&per_page=100&page={page}", Array<AttributeTerm>::class.java, attribute.id, page)!!
+                        }
+                        response.forEach { terms.add(it) }
+                        page++
+                    } while (response.isNotEmpty())
+                    terms.toTypedArray()
                 }
         return attributeTerms.toMutableList()
     }
@@ -163,14 +191,18 @@ class WooCommerceApi(var appConfigProperties: AppConfigurationProperties, var re
         var result = attribute
         if (attribute.id == null) {
             logger.info("Creating attribute ${attribute.name}")
-            result = rest().postForObject("/wp-json/wc/v3/products/attributes", attribute, Attribute::class.java)!!
+            result = retryTemplate.execute<Attribute, Exception> { _ ->
+                rest().postForObject("/wp-json/wc/v3/products/attributes", attribute, Attribute::class.java)!!
+            }
         }
 
         var resultOptions = mutableListOf<AttributeTerm>()
         for (option in attribute.options) {
             if (option.id == null && option::class != AttributeTerm.Name::class && !option.name.isBlank()) {
                 logger.info("Creating attribute ${attribute.name} with option ${option.name}")
-                val responseTerm = rest().postForObject("/wp-json/wc/v3/products/attributes/{attributeId}/terms", option, AttributeTerm::class.java, result.id)!!
+                val responseTerm = retryTemplate.execute<AttributeTerm, Exception> { _ ->
+                    rest().postForObject("/wp-json/wc/v3/products/attributes/{attributeId}/terms", option, AttributeTerm::class.java, result.id)!!
+                }
                 resultOptions.add(responseTerm)
                 val cachedTerms = cache().attributeTermCache[attribute.name]?.toMutableList() ?: mutableListOf()
                 cachedTerms.add(responseTerm)
@@ -196,7 +228,9 @@ class WooCommerceApi(var appConfigProperties: AppConfigurationProperties, var re
                     sentTerms.add(trimmedName2)
                     val term = AttributeTerm.NewTerm(null, option.name)
                     logger.info("Updating attribute ${attribute.name} terms, creating option ${option.name}")
-                    val responseTerm = rest().postForObject("/wp-json/wc/v3/products/attributes/{attributeId}/terms", term, AttributeTerm::class.java, attribute.id)!!
+                    val responseTerm = retryTemplate.execute<AttributeTerm, Exception> { _ ->
+                        rest().postForObject("/wp-json/wc/v3/products/attributes/{attributeId}/terms", term, AttributeTerm::class.java, attribute.id)!!
+                    }
                     val cachedTerms = cache().attributeTermCache[attribute.name]?.toMutableList() ?: mutableListOf()
                     cachedTerms.add(responseTerm)
                     cache().attributeTermCache[attribute.name] = cachedTerms.toTypedArray()
@@ -217,9 +251,12 @@ class WooCommerceApi(var appConfigProperties: AppConfigurationProperties, var re
         }
         convertAttributeTermsToNames(variation.attributes)
         convertAttributesToSingle(variation)
-        var responseVariation = rest().postForObject("/wp-json/wc/v3/products/{productId}/variations", variation, ProductVariation::class.java, product.id)!!
+        val responseVariation = retryTemplate.execute<ProductVariation, Exception> { _ ->
+            rest().postForObject("/wp-json/wc/v3/products/{productId}/variations", variation, ProductVariation::class.java, product.id)!!
+        }
 
         cache().productCache[product.name]!![0].variations.replaceAll { v -> if (v.sku == responseVariation.sku) { responseVariation } else { v } }
         return responseVariation
     }
+
 }

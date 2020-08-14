@@ -1,19 +1,17 @@
 package xyz.deverse.evendilo.functions
 
-import xyz.deverse.evendilo.model.woocommerce.AttributeTerm
-
 
 inline fun<T> replaceList(list: MutableList<T>, replacer: (T) -> T) {
-    var tempList = mutableListOf<T>()
+    val tempList = mutableListOf<T>()
     list.forEach { tempList.add(it) }
-    var replacement = tempList.map { replacer(it) }
+    val replacement = tempList.map { replacer(it) }
     list.clear()
     replacement.forEach { list.add(it) }
 }
 
 
-inline fun<T> mergeDistinct(destination: MutableList<T>, list: MutableList<T>) {
-    var merged = HashSet<T>()
+fun<T> mergeDistinct(destination: MutableList<T>, list: MutableList<T>) {
+    val merged = HashSet<T>()
     merged.addAll(destination)
     merged.addAll(list)
     destination.clear()
