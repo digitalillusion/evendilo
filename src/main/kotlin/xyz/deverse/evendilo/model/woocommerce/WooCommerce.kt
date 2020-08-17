@@ -2,6 +2,8 @@ package xyz.deverse.evendilo.model.woocommerce
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonInclude.Include
 import com.fasterxml.jackson.annotation.JsonValue
 import xyz.deverse.evendilo.model.Model
 import kotlin.reflect.full.isSubclassOf
@@ -12,9 +14,11 @@ data class Category (
     val name: String
 ) : Model
 
+@JsonInclude(Include.NON_NULL)
 data class Image (
+    override val id: Long?,
     var src: String = ""
-)
+) : Model
 
 enum class ProductType {
     simple, grouped, external, variable;
@@ -154,11 +158,11 @@ data class ProductVariation (
         var description: String,
         var regular_price: String,
         var sale_price: String,
-        var images: Image,
+        var image: Image,
         var attributes: MutableList<Attribute>
 ) : Model {
-    constructor() : this(null, "", "", "", "", Image(), mutableListOf<Attribute>())
+    constructor() : this(null, "", "", "", "", Image(null), mutableListOf<Attribute>())
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    constructor(id: Long) : this(id, "", "", "", "", Image(), mutableListOf<Attribute>())
+    constructor(id: Long) : this(id, "", "", "", "", Image(null), mutableListOf<Attribute>())
 }

@@ -15,7 +15,7 @@ class ProductMapperHelper {
     @Named("toImage")
     fun toImages(imageUrls: String): MutableList<Image> {
         return if (imageUrls.isNotEmpty()) {
-            imageUrls.split(",").map { Image(it.trim()) }.toMutableList()
+            imageUrls.split(",").map { Image(null, it.trim()) }.toMutableList()
         } else {
             mutableListOf()
         }

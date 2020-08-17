@@ -254,6 +254,7 @@ class WooCommerceApi(var appConfigProperties: AppConfigurationProperties, var re
         val responseVariation = retryTemplate.execute<ProductVariation, Exception> { _ ->
             rest().postForObject("/wp-json/wc/v3/products/{productId}/variations", variation, ProductVariation::class.java, product.id)!!
         }
+        product.images.add(responseVariation.image)
 
         cache().productCache[product.name]!![0].variations.replaceAll { v -> if (v.sku == responseVariation.sku) { responseVariation } else { v } }
         return responseVariation

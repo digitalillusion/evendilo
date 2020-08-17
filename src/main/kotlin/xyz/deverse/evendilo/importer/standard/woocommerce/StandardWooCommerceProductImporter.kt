@@ -15,6 +15,7 @@ import xyz.deverse.importer.AbstractImporter
 import xyz.deverse.importer.ImportMapper
 import xyz.deverse.importer.csv.CsvColumn
 import xyz.deverse.importer.csv.CsvFileReader
+import java.io.File
 
 
 data class StandardWooCommerceProductCsvLine(
@@ -84,6 +85,8 @@ class StandardWooCommerceProductImporter(var api: WooCommerceApi) :
                 a
             }.toMutableList()
 
+            val imageName = File(node.images[0].src).nameWithoutExtension
+            val image = result.images.find { it.src.contains(imageName) } ?: node.images[0]
             val sku = node.sku + "_" + variationAttributes.map { a: Attribute -> a.asSingle().option?.asName()?.name }.joinToString("_").replace("\\s+".toRegex(), "-")
             val description = if (node != result) { "" } else { node.description }
             result.variations.add(ProductVariation(
@@ -92,7 +95,7 @@ class StandardWooCommerceProductImporter(var api: WooCommerceApi) :
                 description,
                 node.regular_price,
                 node.sale_price,
-                node.images[0],
+                image,
                 variationAttributes
             ))
             result
