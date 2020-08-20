@@ -10,6 +10,7 @@ import xyz.deverse.evendilo.model.Destination
 import xyz.deverse.evendilo.model.Family
 import xyz.deverse.evendilo.model.woocommerce.Attribute
 import xyz.deverse.evendilo.model.woocommerce.Product
+import xyz.deverse.evendilo.model.woocommerce.ProductType
 import xyz.deverse.evendilo.model.woocommerce.ProductVariation
 import xyz.deverse.importer.AbstractImporter
 import xyz.deverse.importer.ImportMapper
@@ -19,27 +20,27 @@ import java.io.File
 
 
 data class StandardWooCommerceProductCsvLine(
-        var type: String = "",
         @CsvColumn(0) var sku: String = "",
         @CsvColumn(1) var name: String = "",
-        @CsvColumn(2) var sale_price: String = "",
-        @CsvColumn(3) var regular_price: String = "",
-        @CsvColumn(4) var short_description: String = "",
-        @CsvColumn(5) var description: String = "",
-        @CsvColumn(6) var categoryNames: String = "",
-        @CsvColumn(7) var tagNames: String = "",
-        @CsvColumn(8) var imageUrls: String = "",
+        @CsvColumn(2) var type: String = "",
+        @CsvColumn(3) var sale_price: String = "",
+        @CsvColumn(4) var regular_price: String = "",
+        @CsvColumn(5) var short_description: String = "",
+        @CsvColumn(6) var description: String = "",
+        @CsvColumn(7) var categoryNames: String = "",
+        @CsvColumn(8) var tagNames: String = "",
+        @CsvColumn(9) var imageUrls: String = "",
 
-        @CsvColumn(9) var attr0: String = "",
-        @CsvColumn(10) var attr1: String = "",
-        @CsvColumn(11) var attr2: String = "",
-        @CsvColumn(12) var attr3: String = "",
-        @CsvColumn(13) var attr4: String = "",
-        @CsvColumn(14) var attr5: String = "",
-        @CsvColumn(15) var attr6: String = "",
-        @CsvColumn(16) var attr7: String = "",
-        @CsvColumn(17) var attr8: String = "",
-        @CsvColumn(18) var attr9: String = ""
+        @CsvColumn(10) var attr0: String = "",
+        @CsvColumn(11) var attr1: String = "",
+        @CsvColumn(12) var attr2: String = "",
+        @CsvColumn(13) var attr3: String = "",
+        @CsvColumn(14) var attr4: String = "",
+        @CsvColumn(15) var attr5: String = "",
+        @CsvColumn(16) var attr6: String = "",
+        @CsvColumn(17) var attr7: String = "",
+        @CsvColumn(18) var attr8: String = "",
+        @CsvColumn(19) var attr9: String = ""
 ) : CsvFileReader.CsvLine<Product>()
 
 @Service
@@ -83,27 +84,41 @@ class StandardWooCommerceProductImporter(var api: WooCommerceApi) :
                 variationAttributes.add(attribute.copy(options = optionsCopy))
             }
 
-            val result = api.findProduct(node) ?: node
-            result.attributes = validAttributes.map { a ->
-                val existingTerms = result.attributes.find { it.name == a.name }?.options ?: mutableListOf()
-                mergeDistinct(a.options, existingTerms)
-                a
-            }.toMutableList()
+            when (node.type) {
+                ProductType.Simple -> {
+                    node
+                }
+                ProductType.Variable -> {
+                    val result = api.findProduct(node) ?: node
+                    result.attributes = validAttributes.map { a ->
+                        val existingTerms = result.attributes.find { it.name == a.name }?.options ?: mutableListOf()
+                        mergeDistinct(a.options, existingTerms)
+                        a
+                    }.toMutableList()
 
-            val imageName = File(node.images[0].src).nameWithoutExtension
-            val image = result.images.find { it.src.contains(imageName) } ?: node.images[0]
-            val sku = node.sku + "_" + variationAttributes.map { a: Attribute -> a.asSingle().option?.asName()?.name }.joinToString("_").replace("\\s+".toRegex(), "-")
-            val description = if (node != result) { "" } else { node.description }
-            result.variations.add(ProductVariation(
-                null,
-                sku,
-                description,
-                node.regular_price,
-                node.sale_price,
-                image,
-                variationAttributes
-            ))
-            result
+                    val imageName = File(node.images[0].src).nameWithoutExtension
+                    val image = result.images.find { it.src.contains(imageName) } ?: node.images[0]
+                    val sku = node.sku + "_" + variationAttributes.map { a: Attribute -> a.asSingle().option?.asName()?.name }.joinToString("_").replace("\\s+".toRegex(), "-")
+                    val description = if (node != result) {
+                        ""
+                    } else {
+                        node.description
+                    }
+                    result.variations.add(ProductVariation(
+                            null,
+                            sku,
+                            description,
+                            node.regular_price,
+                            node.sale_price,
+                            image,
+                            variationAttributes
+                    ))
+                    result
+                }
+                else -> {
+                    throw ImportLineException(ErrorCode.IMPORT_LINE_ERROR_PRODUCT_TYPE)
+                }
+            }
         }
 
     }

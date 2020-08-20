@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonInclude.Include
 import com.fasterxml.jackson.annotation.JsonValue
+import xyz.deverse.evendilo.importer.ErrorCode
+import xyz.deverse.evendilo.importer.ImportLineException
 import xyz.deverse.evendilo.model.Model
 import kotlin.reflect.full.isSubclassOf
 
@@ -25,16 +27,22 @@ data class Image (
 ) : Model
 
 enum class ProductType {
-    simple, grouped, external, variable;
+    Simple, Grouped, External, Variable, Variation;
+
+    @JsonValue
+    override fun toString(): String {
+        return super.toString().toLowerCase()
+    }
 
     companion object {
-        fun valueOf(type: String): ProductType {
-            return when (type) {
-                simple.toString() -> simple
-                grouped.toString() -> grouped
-                external.toString() -> external
-                variable.toString() -> variable
-                else -> throw IllegalArgumentException(type)
+        @JvmStatic
+        fun fromString(type: String): ProductType {
+            return when (type.toLowerCase()) {
+                Simple.toString() -> Simple
+                Grouped.toString() -> Grouped
+                External.toString() -> External
+                Variable.toString() -> Variable
+                else -> throw ImportLineException(ErrorCode.IMPORT_LINE_ERROR_PRODUCT_TYPE)
             }
         }
     }
@@ -152,7 +160,7 @@ data class Product(
         var attributes: MutableList<Attribute>,
         var variations: MutableList<ProductVariation>
 ) : Model {
-    constructor(): this(null, "", "", ProductType.simple, "", "", "", "",
+    constructor(): this(null, "", "", ProductType.Simple, "", "", "", "",
             mutableListOf<Category>(), mutableListOf<Tag>(), mutableListOf<Image>(), mutableListOf<Attribute>(),
             mutableListOf<ProductVariation>())
 }

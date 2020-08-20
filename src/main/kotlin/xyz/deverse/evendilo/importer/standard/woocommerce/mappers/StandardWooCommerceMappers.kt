@@ -15,7 +15,9 @@ class ProductMapperHelper {
     @Named("toImages")
     fun toImages(imageUrls: String): MutableList<Image> {
         return if (imageUrls.isNotEmpty()) {
-            imageUrls.split(",").map { Image(null, it.trim()) }.toMutableList()
+            imageUrls.split(",")
+                    .filter { it.isNotBlank() }
+                    .map { Image(null, it.trim()) }.toMutableList()
         } else {
             mutableListOf()
         }
@@ -24,7 +26,9 @@ class ProductMapperHelper {
     @Named("toCategories")
     fun toCategories(categoryNames: String): MutableList<Category> {
         return if (categoryNames.isNotEmpty()) {
-            categoryNames.split(",").map { Category(null, it.trim()) }.toMutableList()
+            categoryNames.split(",")
+                    .filter { it.isNotBlank() }
+                    .map { Category(null, it.trim()) }.toMutableList()
         } else {
             mutableListOf()
         }
@@ -33,7 +37,9 @@ class ProductMapperHelper {
     @Named("toTags")
     fun toTags(tagNames: String): MutableList<Tag> {
         return if (tagNames.isNotEmpty()) {
-            tagNames.split(",").map { Tag(null, it.trim()) }.toMutableList()
+            tagNames.split(",")
+                    .filter { it.isNotBlank() }
+                    .map { Tag(null, it.trim()) }.toMutableList()
         } else {
             mutableListOf()
         }
@@ -71,7 +77,7 @@ interface StandardWooCommerceProductMapper : CsvFileReader.CsvImportMapper<Produ
 
     @Mappings(value = [
         Mapping(target = "id", ignore = true),
-        Mapping(target = "type", expression = "java(ProductType.variable)"),
+        Mapping(target = "type", expression = "java(ProductType.fromString(csvLine.getType()))"),
         Mapping(target = "description", expression = "java(org.apache.commons.text.StringEscapeUtils.escapeJava(csvLine.getDescription()))"),
         Mapping(target = "short_description", expression = "java(org.apache.commons.text.StringEscapeUtils.escapeJava(csvLine.getShort_description()))"),
         Mapping(source = "imageUrls", target = "images", qualifiedByName = ["toImages"]),

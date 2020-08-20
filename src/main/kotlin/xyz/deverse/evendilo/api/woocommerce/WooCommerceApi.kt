@@ -174,11 +174,13 @@ class WooCommerceApi(var appConfigProperties: AppConfigurationProperties, var re
 
     fun findProduct(product: Product) : Product? {
         val search = product.name
+        val type = product.type
+        val sku = product.sku
         val products = cache().productCache
                 .getOrPut(search)  {
-                    logger.info("Searching product $search")
+                    logger.info("Searching product $search (type=$type, sku=$sku)")
                     retryTemplate.execute<Array<Product>, Exception> { _ ->
-                        rest().getForObject("/wp-json/wc/v3/products?search={search}", Array<Product>::class.java, search)
+                        rest().getForObject("/wp-json/wc/v3/products?search={search}&type={type}&sku={sku}", Array<Product>::class.java, search, type, sku)
                     }
                 }
 
