@@ -31,12 +31,17 @@ fun convertAttributeTermsToNames(attributes: MutableList<Attribute>) {
 class WooCommerceApiCache (
     var restTemplate: RestTemplate,
     var categoryCache: HashMap<String, Array<Category>?>,
+    var tagsCache: HashMap<String, Array<Tag>?>,
     var productCache: HashMap<String, Array<Product>?>,
     var attributeCache: MutableList<Attribute>,
     var attributeTermCache: HashMap<String, Array<AttributeTerm>>
 ) {
+    constructor(restTemplate: RestTemplate) :
+            this(restTemplate, HashMap(), HashMap(), HashMap(), mutableListOf(), HashMap())
+
     fun clear() {
         categoryCache.clear()
+        tagsCache.clear()
         attributeCache.clear()
         productCache.clear()
     }
@@ -68,7 +73,7 @@ class WooCommerceApi(var appConfigProperties: AppConfigurationProperties, var re
             if (restTemplate == null) {
                 throw InvalidParameterException("OAuth2AuthenticationToken.authorizedClientRegistrationId cannot be matched with any WooCommerce configuration: ${token.authorizedClientRegistrationId}")
             }
-            WooCommerceApiCache(restTemplate, HashMap(), HashMap(), mutableListOf(), HashMap())
+            WooCommerceApiCache(restTemplate)
         }
     }
 
@@ -79,6 +84,35 @@ class WooCommerceApi(var appConfigProperties: AppConfigurationProperties, var re
     fun refreshCache() {
         cache().clear()
         logger.info("Cache cleared")
+    }
+
+    fun findTagsByName(search: String, exact: Boolean) : List<Tag> {
+        val tags = cache().tagsCache
+                .getOrPut(search)  {
+                    logger.info("Searching tag $search (exact=$exact)")
+                    var tags = mutableListOf<Tag>()
+                    var page = 1
+                    do {
+                        val response = retryTemplate.execute<Array<Tag>, Exception> { _ ->
+                            rest().getForObject("/wp-json/wc/v3/products/tags?search={search}&per_page=100&page={page}", Array<Tag>::class.java, search, page)!!
+                        }
+                        response.forEach { tags.add(it) }
+                        page++
+                    } while (response.isNotEmpty())
+                    tags.toTypedArray()
+                }
+
+        if (tags == null || !exact) {
+            return tags?.asList() ?: listOf()
+        }
+
+        val exactMatch = tags.find { it.name == search }
+        return if (exactMatch != null) { listOf(exactMatch) } else { listOf() }
+    }
+
+    fun findTag(search: Tag?) : Tag? {
+        val tags = findTagsByName(search?.name ?: "", true)
+        return if (tags.isNotEmpty()) tags[0] else null
     }
 
     fun findCategoriesByName(search: String, exact: Boolean) : List<Category> {

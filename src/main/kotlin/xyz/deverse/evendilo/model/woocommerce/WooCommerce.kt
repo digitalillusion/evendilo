@@ -8,6 +8,10 @@ import com.fasterxml.jackson.annotation.JsonValue
 import xyz.deverse.evendilo.model.Model
 import kotlin.reflect.full.isSubclassOf
 
+data class Tag (
+        override val id: Long?,
+        val name: String
+) : Model
 
 data class Category (
     override val id: Long?,
@@ -143,12 +147,13 @@ data class Product(
         var description: String,
         var short_description: String,
         var categories: MutableList<Category>,
+        var tags: MutableList<Tag>,
         var images: MutableList<Image>,
         var attributes: MutableList<Attribute>,
         var variations: MutableList<ProductVariation>
 ) : Model {
     constructor(): this(null, "", "", ProductType.simple, "", "", "", "",
-            mutableListOf<Category>(), mutableListOf<Image>(), mutableListOf<Attribute>(),
+            mutableListOf<Category>(), mutableListOf<Tag>(), mutableListOf<Image>(), mutableListOf<Attribute>(),
             mutableListOf<ProductVariation>())
 }
 

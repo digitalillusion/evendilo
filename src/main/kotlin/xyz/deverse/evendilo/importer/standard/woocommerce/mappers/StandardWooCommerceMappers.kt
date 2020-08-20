@@ -12,7 +12,7 @@ import xyz.deverse.importer.csv.CsvFileReader
 
 @Component
 class ProductMapperHelper {
-    @Named("toImage")
+    @Named("toImages")
     fun toImages(imageUrls: String): MutableList<Image> {
         return if (imageUrls.isNotEmpty()) {
             imageUrls.split(",").map { Image(null, it.trim()) }.toMutableList()
@@ -21,8 +21,8 @@ class ProductMapperHelper {
         }
     }
 
-    @Named("toCategory")
-    fun toCategory(categoryNames: String): MutableList<Category> {
+    @Named("toCategories")
+    fun toCategories(categoryNames: String): MutableList<Category> {
         return if (categoryNames.isNotEmpty()) {
             categoryNames.split(",").map { Category(null, it.trim()) }.toMutableList()
         } else {
@@ -30,6 +30,14 @@ class ProductMapperHelper {
         }
     }
 
+    @Named("toTags")
+    fun toTags(tagNames: String): MutableList<Tag> {
+        return if (tagNames.isNotEmpty()) {
+            tagNames.split(",").map { Tag(null, it.trim()) }.toMutableList()
+        } else {
+            mutableListOf()
+        }
+    }
 }
 
 @Mapper(componentModel = "spring",
@@ -66,8 +74,9 @@ interface StandardWooCommerceProductMapper : CsvFileReader.CsvImportMapper<Produ
         Mapping(target = "type", expression = "java(ProductType.variable)"),
         Mapping(target = "description", expression = "java(org.apache.commons.text.StringEscapeUtils.escapeJava(csvLine.getDescription()))"),
         Mapping(target = "short_description", expression = "java(org.apache.commons.text.StringEscapeUtils.escapeJava(csvLine.getShort_description()))"),
-        Mapping(source = "imageUrls", target = "images", qualifiedByName = ["toImage"]),
-        Mapping(source = "categoryNames", target = "categories", qualifiedByName = ["toCategory"])
+        Mapping(source = "imageUrls", target = "images", qualifiedByName = ["toImages"]),
+        Mapping(source = "categoryNames", target = "categories", qualifiedByName = ["toCategories"]),
+        Mapping(source = "tagNames", target = "tags", qualifiedByName = ["toTags"])
     ])
     override fun toNode(csvLine: StandardWooCommerceProductCsvLine): Product
 }

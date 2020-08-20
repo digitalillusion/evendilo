@@ -27,18 +27,19 @@ data class StandardWooCommerceProductCsvLine(
         @CsvColumn(4) var short_description: String = "",
         @CsvColumn(5) var description: String = "",
         @CsvColumn(6) var categoryNames: String = "",
-        @CsvColumn(7) var imageUrls: String = "",
+        @CsvColumn(7) var tagNames: String = "",
+        @CsvColumn(8) var imageUrls: String = "",
 
-        @CsvColumn(8) var attr0: String = "",
-        @CsvColumn(9) var attr1: String = "",
-        @CsvColumn(10) var attr2: String = "",
-        @CsvColumn(11) var attr3: String = "",
-        @CsvColumn(12) var attr4: String = "",
-        @CsvColumn(13) var attr5: String = "",
-        @CsvColumn(14) var attr6: String = "",
-        @CsvColumn(15) var attr7: String = "",
-        @CsvColumn(16) var attr8: String = "",
-        @CsvColumn(17) var attr9: String = ""
+        @CsvColumn(9) var attr0: String = "",
+        @CsvColumn(10) var attr1: String = "",
+        @CsvColumn(11) var attr2: String = "",
+        @CsvColumn(12) var attr3: String = "",
+        @CsvColumn(13) var attr4: String = "",
+        @CsvColumn(14) var attr5: String = "",
+        @CsvColumn(15) var attr6: String = "",
+        @CsvColumn(16) var attr7: String = "",
+        @CsvColumn(17) var attr8: String = "",
+        @CsvColumn(18) var attr9: String = ""
 ) : CsvFileReader.CsvLine<Product>()
 
 @Service
@@ -54,6 +55,10 @@ class StandardWooCommerceProductImporter(var api: WooCommerceApi) :
             replaceList(node.categories) { nodeCategory ->
                 api.findCategory(nodeCategory)
                         ?: throw ImportLineException(ErrorCode.IMPORT_LINE_ERROR_PRODUCT_CATEGORY)
+            }
+            replaceList(node.tags) { nodeTag ->
+                api.findTag(nodeTag)
+                        ?: throw ImportLineException(ErrorCode.IMPORT_LINE_ERROR_PRODUCT_TAG)
             }
             replaceList(node.attributes) { nodeAttribute ->
                 val existing = api.findAttribute(nodeAttribute)
