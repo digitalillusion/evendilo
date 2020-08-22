@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service
 import xyz.deverse.evendilo.api.woocommerce.WooCommerceApi
 import xyz.deverse.evendilo.functions.mergeDistinct
 import xyz.deverse.evendilo.functions.replaceList
+import xyz.deverse.evendilo.functions.replaceListIndexed
 import xyz.deverse.evendilo.importer.ErrorCode
 import xyz.deverse.evendilo.importer.ImportLineException
 import xyz.deverse.evendilo.model.Destination
@@ -61,7 +62,7 @@ class StandardWooCommerceProductImporter(var api: WooCommerceApi) :
                 api.findTag(nodeTag)
                         ?: throw ImportLineException(ErrorCode.IMPORT_LINE_ERROR_PRODUCT_TAG)
             }
-            replaceList(node.attributes) { nodeAttribute ->
+            replaceListIndexed(node.attributes) { index, nodeAttribute ->
                 val existing = api.findAttribute(nodeAttribute)
                 if (existing != null) {
                     val existingOptions = api.findAttributeTerms(existing)
@@ -69,7 +70,7 @@ class StandardWooCommerceProductImporter(var api: WooCommerceApi) :
                         val existingOption = existingOptions.find { it.name == nodeAttributeOption.name }
                         existingOption ?: nodeAttributeOption
                     }
-                    Attribute.Multiple(existing.id, existing.name, nodeAttribute.options)
+                    Attribute.Multiple(existing.id, existing.name, index, nodeAttribute.options)
                 } else {
                     nodeAttribute
                 }
@@ -85,33 +86,39 @@ class StandardWooCommerceProductImporter(var api: WooCommerceApi) :
             }
 
             when (node.type) {
-                ProductType.Simple -> {
+                ProductType.Simple-> {
                     node
                 }
                 ProductType.Variable -> {
+                    node.attributes = validAttributes.mapIndexed { index, a ->
+                        val existingTerms = node.attributes.find { it.name == a.name }?.options ?: mutableListOf()
+                        mergeDistinct(a.options, existingTerms)
+                        a.position = index
+                        a
+                    }.toMutableList()
+                    node
+                }
+                ProductType.Variation -> {
                     val result = api.findProduct(node) ?: node
-                    result.attributes = validAttributes.map { a ->
+                    result.attributes = validAttributes.mapIndexed { index, a ->
                         val existingTerms = result.attributes.find { it.name == a.name }?.options ?: mutableListOf()
                         mergeDistinct(a.options, existingTerms)
+                        a.position = index
                         a
                     }.toMutableList()
 
                     val imageName = File(node.images[0].src).nameWithoutExtension
                     val image = result.images.find { it.src.contains(imageName) } ?: node.images[0]
                     val sku = node.sku + "_" + variationAttributes.map { a: Attribute -> a.asSingle().option?.asName()?.name }.joinToString("_").replace("\\s+".toRegex(), "-")
-                    val description = if (node != result) {
-                        ""
-                    } else {
-                        node.description
-                    }
+                    val description = if (node != result) { "" } else { node.description }
                     result.variations.add(ProductVariation(
-                            null,
-                            sku,
-                            description,
-                            node.regular_price,
-                            node.sale_price,
-                            image,
-                            variationAttributes
+                        null,
+                        sku,
+                        description,
+                        node.regular_price,
+                        node.sale_price,
+                        image,
+                        variationAttributes
                     ))
                     result
                 }

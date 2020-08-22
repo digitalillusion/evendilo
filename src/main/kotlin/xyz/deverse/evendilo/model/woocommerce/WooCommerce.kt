@@ -42,6 +42,7 @@ enum class ProductType {
                 Grouped.toString() -> Grouped
                 External.toString() -> External
                 Variable.toString() -> Variable
+                Variation.toString() -> Variation
                 else -> throw ImportLineException(ErrorCode.IMPORT_LINE_ERROR_PRODUCT_TYPE)
             }
         }
@@ -51,6 +52,7 @@ enum class ProductType {
 sealed class Attribute (
         override val id: Long?,
         open var name: String = "",
+        open var position: Int = 0,
         open var options: MutableList<AttributeTerm> = mutableListOf()
 ): Model {
 
@@ -58,25 +60,29 @@ sealed class Attribute (
         return Single(this.id, this.name, this.options[0])
     }
 
-    fun copy(id: Long? = null, name: String? = null, options: MutableList<AttributeTerm>? = null): Attribute {
+    fun copy(id: Long? = null, name: String? = null, position: Int? = null, options: MutableList<AttributeTerm>? = null): Attribute {
         if (options != null && options.size == 1 || this.options.size == 1) {
             return Single(id ?: this.id, name ?: this.name, options?.get(0) ?: this.options[0])
         }
-        return Multiple(id ?: this.id, name ?: this.name, options ?: this.options)
+        return Multiple(id ?: this.id, name ?: this.name, position ?: this.position, options ?: this.options)
     }
 
-    class Multiple(id: Long?, name: String, options: MutableList<AttributeTerm>) : Attribute(id, name, options) {
+    class Multiple(id: Long?, name: String, position: Int, options: MutableList<AttributeTerm>) : Attribute(id, name, position, options) {
         val variation: Boolean = true
         val visible: Boolean = true
     }
 
-    class Single(id: Long?, name: String, option: AttributeTerm) : Attribute(id, name, mutableListOf(option)) {
+    class Single(id: Long?, name: String, option: AttributeTerm) : Attribute(id, name, 0, mutableListOf(option)) {
         val option: AttributeTerm?
             get() = if (super.options.size > 0) { super.options[0] } else { null }
 
         override var name: String = ""
             @JsonIgnore
             get() = super.name
+
+        override var position: Int = 0
+            @JsonIgnore
+            get() = super.position
 
         override var options: MutableList<AttributeTerm> = mutableListOf(option)
             @JsonIgnore
@@ -90,9 +96,10 @@ sealed class Attribute (
             val map = obj as Map<*, *>
             val id= map["id"] as Int
             val name= map["name"] as String
+            val position= (map["position"] ?: 0) as Int
             val options= map["options"]  ?: mutableListOf<String>()
             val terms = (options as MutableList<String>).map { AttributeTerm.Name(it) as AttributeTerm }.toMutableList()
-            return Multiple(id.toLong(), name, terms)
+            return Multiple(id.toLong(), name, position, terms)
         }
     }
 
