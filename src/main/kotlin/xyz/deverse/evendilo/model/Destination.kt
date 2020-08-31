@@ -24,4 +24,5 @@ sealed class Destination(private val type: String) : ImportTag {
     }
 
     object WooCommerce : Destination("woocommerce");
+    object Amazon : Destination("amazon");
 }

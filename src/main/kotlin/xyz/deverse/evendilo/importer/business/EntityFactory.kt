@@ -16,7 +16,7 @@ abstract class EntityFactory protected constructor(var destination: Destination)
 
     /**
      * Instance a new entity of the given class according to the family of the EntityFactory.
-     * For instance, if `Destination.WooCommerce` and `entityClass` is `PRoduct`, the method invocation will return a new `xyz.deverse.evendilo.model.woocommerce.Product` instance
+     * For instance, if `Destination.WooCommerce` and `entityClass` is `PRoduct`, the method invocation will return a new `xyz.deverse.evendilo.model.woocommerce.xyz.deverse.evendilo.model.amazon.Product` instance
      * @param entityClass The desired domain entity class
      * @return A new instance of the entity according to the destination
      */

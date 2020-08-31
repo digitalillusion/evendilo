@@ -49,7 +49,7 @@ class ImporterController(val importerProcessStatusCache: ImporterProcessStatusCa
                 ?: return importerProcessRestart(family, destination)
         if (oldImporterProcessStatus.isStarted && !oldImporterProcessStatus.isCompleted && !oldImporterProcessStatus.isAborted) {
             val newImporterProcessStatus = ImporterProcessStatus.builder()
-                    .categories(getImportedTypes(importTags))
+                    .categories(getImportedTypes())
                     .completed(false)
                     .importTags(importTags)
                     .results(oldImporterProcessStatus.results)
@@ -76,7 +76,7 @@ class ImporterController(val importerProcessStatusCache: ImporterProcessStatusCa
         var importerProcessStatus: ImporterProcessStatus? = retrieve(cacheId)
         if (importerProcessStatus == null || !importerProcessStatus.isAborted || importerProcessStatus.isCompleted) {
             val newImporterProcessStatus = ImporterProcessStatus.builder() 
-                    .categories(getImportedTypes(importTags)) 
+                    .categories(getImportedTypes())
                     .importTags(importTags)
                     .build()
             update(cacheId, newImporterProcessStatus)
@@ -150,9 +150,8 @@ class ImporterController(val importerProcessStatusCache: ImporterProcessStatusCa
         return retrieve(cacheId)
     }
 
-    private fun getImportedTypes(importTags: List<ImportTag>): SortedSet<String> {
+    private fun getImportedTypes(): SortedSet<String> {
         val familyImporters: Set<Importer<out Model, out ImportLine>>? = importerBusinessDelegate.importers
-                .filter { importer : Importer<*, *> -> importer.isMatching(importTags) }
                 .filter { importer : Importer<*, *> ->
                     val restResource: RestResource? = importer.javaClass.getAnnotation(RestResource::class.java)
                     restResource == null || restResource.exported

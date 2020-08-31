@@ -4,9 +4,10 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.core.convert.ConversionService
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
+import xyz.deverse.evendilo.importer.standard.amazon.StandardAmazonProductCsvLine
+import xyz.deverse.evendilo.importer.standard.amazon.mappers.StandardAmazonProductMapper
 import xyz.deverse.evendilo.importer.standard.woocommerce.StandardWooCommerceProductCsvLine
 import xyz.deverse.evendilo.importer.standard.woocommerce.mappers.StandardWooCommerceProductMapper
-import xyz.deverse.evendilo.model.woocommerce.Product
 import xyz.deverse.importer.ImportLine
 import xyz.deverse.importer.ImportMapper.MappedLine
 import xyz.deverse.importer.ImportStrategy
@@ -18,7 +19,7 @@ import javax.annotation.PostConstruct
 @Service
 class CsvImportStrategyFactory(
         @Qualifier("defaultConversionService") var conversionService: ConversionService,
-
+        var standardAmazonProductMapper: StandardAmazonProductMapper,
         var standardWooCommerceProductMapper: StandardWooCommerceProductMapper) : ImportStrategyFactory {
     var strategies: MutableList<CsvImportStrategyBuilder<*, *>.CsvImportStrategy> = mutableListOf()
 
@@ -38,9 +39,14 @@ class CsvImportStrategyFactory(
 
     @PostConstruct
     fun setup() {
-        strategies.add(object : CsvImportStrategyBuilder<Product, StandardWooCommerceProductCsvLine>() {}
+        strategies.add(object : CsvImportStrategyBuilder<xyz.deverse.evendilo.model.woocommerce.Product, StandardWooCommerceProductCsvLine>() {}
                 .withConversionService(conversionService)
                 .withRowMapper(standardWooCommerceProductMapper)
+                .withPostProcessCondition(ImportStrategy.PostProcessCondition.ON_ALL_LINES)
+                .build())
+        strategies.add(object : CsvImportStrategyBuilder<xyz.deverse.evendilo.model.amazon.Product, StandardAmazonProductCsvLine>() {}
+                .withConversionService(conversionService)
+                .withRowMapper(standardAmazonProductMapper)
                 .withPostProcessCondition(ImportStrategy.PostProcessCondition.ON_ALL_LINES)
                 .build())
     }
