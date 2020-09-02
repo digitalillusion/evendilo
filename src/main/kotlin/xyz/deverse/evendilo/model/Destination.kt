@@ -17,12 +17,16 @@ sealed class Destination(private val type: String) : ImportTag {
     companion object {
         fun valueOf(type: String): Destination {
             return when (type) {
-                WooCommerce.toString() -> WooCommerce
+                Woocommerce.toString() -> Woocommerce
+                Amazon.toString() -> Amazon
+                Ebay.toString() -> Ebay
                 else -> throw IllegalArgumentException(type)
             }
         }
     }
 
-    object WooCommerce : Destination("woocommerce");
     object Amazon : Destination("amazon");
+    object Ebay  : Destination("ebay");
+    object Woocommerce : Destination("woocommerce");
+
 }

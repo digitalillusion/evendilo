@@ -106,7 +106,7 @@ class ImporterController(val importerProcessStatusCache: ImporterProcessStatusCa
     @PostMapping("/import/{family}/{destination}/{entityName}")
     fun <T : Model> uploadFileHandler(
             @ApiParam(value = "The family of the entity", allowableValues = "standard", allowEmptyValue = false) @PathVariable("family") family: Family,
-            @ApiParam(value = "The destination of the entity", allowableValues = "woocommerce", allowEmptyValue = false) @PathVariable("destination") destination: Destination,
+            @ApiParam(value = "The destination of the entity", allowableValues = "woocommerce,ebay,amazon", allowEmptyValue = false) @PathVariable("destination") destination: Destination,
             @ApiParam(value = "The class name of the entity", allowEmptyValue = false) @PathVariable("entityName") entityName: String,
             @ApiParam(value = "The file containing the definitions", allowEmptyValue = false) @RequestParam("file") file: MultipartFile): ImporterProcessStatus? {
         csvImportStrategyFactory.csvFile = file

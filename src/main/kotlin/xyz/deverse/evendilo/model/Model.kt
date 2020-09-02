@@ -12,5 +12,5 @@ interface Model {
 
     @get:JsonIgnore
     val destination: Destination
-        get() = Destination.WooCommerce
+        get() = Destination.Woocommerce
 }

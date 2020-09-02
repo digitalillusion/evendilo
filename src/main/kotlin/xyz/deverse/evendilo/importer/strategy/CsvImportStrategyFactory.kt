@@ -6,8 +6,10 @@ import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 import xyz.deverse.evendilo.importer.standard.amazon.StandardAmazonProductCsvLine
 import xyz.deverse.evendilo.importer.standard.amazon.mappers.StandardAmazonProductMapper
-import xyz.deverse.evendilo.importer.standard.woocommerce.StandardWooCommerceProductCsvLine
-import xyz.deverse.evendilo.importer.standard.woocommerce.mappers.StandardWooCommerceProductMapper
+import xyz.deverse.evendilo.importer.standard.ebay.StandardEbayProductCsvLine
+import xyz.deverse.evendilo.importer.standard.ebay.mappers.StandardEbayProductMapper
+import xyz.deverse.evendilo.importer.standard.woocommerce.StandardWoocommerceProductCsvLine
+import xyz.deverse.evendilo.importer.standard.woocommerce.mappers.StandardWoocommerceProductMapper
 import xyz.deverse.importer.ImportLine
 import xyz.deverse.importer.ImportMapper.MappedLine
 import xyz.deverse.importer.ImportStrategy
@@ -20,7 +22,8 @@ import javax.annotation.PostConstruct
 class CsvImportStrategyFactory(
         @Qualifier("defaultConversionService") var conversionService: ConversionService,
         var standardAmazonProductMapper: StandardAmazonProductMapper,
-        var standardWooCommerceProductMapper: StandardWooCommerceProductMapper) : ImportStrategyFactory {
+        var standardEbayProductMapper: StandardEbayProductMapper,
+        var standardWoocommerceProductMapper: StandardWoocommerceProductMapper) : ImportStrategyFactory {
     var strategies: MutableList<CsvImportStrategyBuilder<*, *>.CsvImportStrategy> = mutableListOf()
 
     var csvFile: MultipartFile? = null
@@ -39,14 +42,19 @@ class CsvImportStrategyFactory(
 
     @PostConstruct
     fun setup() {
-        strategies.add(object : CsvImportStrategyBuilder<xyz.deverse.evendilo.model.woocommerce.Product, StandardWooCommerceProductCsvLine>() {}
-                .withConversionService(conversionService)
-                .withRowMapper(standardWooCommerceProductMapper)
-                .withPostProcessCondition(ImportStrategy.PostProcessCondition.ON_ALL_LINES)
-                .build())
         strategies.add(object : CsvImportStrategyBuilder<xyz.deverse.evendilo.model.amazon.Product, StandardAmazonProductCsvLine>() {}
                 .withConversionService(conversionService)
                 .withRowMapper(standardAmazonProductMapper)
+                .withPostProcessCondition(ImportStrategy.PostProcessCondition.ON_ALL_LINES)
+                .build())
+        strategies.add(object : CsvImportStrategyBuilder<xyz.deverse.evendilo.model.ebay.Product, StandardEbayProductCsvLine>() {}
+                .withConversionService(conversionService)
+                .withRowMapper(standardEbayProductMapper)
+                .withPostProcessCondition(ImportStrategy.PostProcessCondition.ON_ALL_LINES)
+                .build())
+        strategies.add(object : CsvImportStrategyBuilder<xyz.deverse.evendilo.model.woocommerce.Product, StandardWoocommerceProductCsvLine>() {}
+                .withConversionService(conversionService)
+                .withRowMapper(standardWoocommerceProductMapper)
                 .withPostProcessCondition(ImportStrategy.PostProcessCondition.ON_ALL_LINES)
                 .build())
     }

@@ -5,27 +5,27 @@ import org.springframework.context.annotation.Configuration
 import xyz.deverse.evendilo.logger
 import javax.annotation.PostConstruct
 
-data class WooCommerceCredentials (
+data class WoocommerceCredentials (
     var username: String = "",
     var password: String = ""
 )
 
-data class WooCommerceImporterConfig (
+data class WoocommerceImporterConfig (
     var attributes: String = ""
 )
 
-data class WooCommerceConfigurationProperties (
+data class WoocommerceConfigurationProperties (
     var identifier: String = "",
     var url: String = "",
-    var importerConfig: WooCommerceImporterConfig = WooCommerceImporterConfig(),
-    var credentials: WooCommerceCredentials = WooCommerceCredentials()
+    var importerConfig: WoocommerceImporterConfig = WoocommerceImporterConfig(),
+    var credentials: WoocommerceCredentials = WoocommerceCredentials()
 )
 
 @Configuration
 @ConfigurationProperties(prefix = "variables")
 data class AppConfigurationProperties(
     var corsAllowedOrigin: String = "*",
-    var woocommerce: MutableList<WooCommerceConfigurationProperties> = mutableListOf()
+    var woocommerce: MutableList<WoocommerceConfigurationProperties> = mutableListOf()
 ) {
     val logger = logger<AppConfigurationProperties>()
 

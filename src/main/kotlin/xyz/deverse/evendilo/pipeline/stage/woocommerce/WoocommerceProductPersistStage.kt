@@ -1,13 +1,13 @@
 package xyz.deverse.evendilo.pipeline.stage.woocommerce
 
 import org.springframework.stereotype.Component
-import xyz.deverse.evendilo.api.woocommerce.WooCommerceApi
+import xyz.deverse.evendilo.api.woocommerce.WoocommerceApi
 import xyz.deverse.evendilo.functions.replaceList
 import xyz.deverse.evendilo.model.woocommerce.Product
 import xyz.deverse.evendilo.pipeline.stage.PersistStage
 
 @Component
-class WooCommerceProductPersistStage(var api: WooCommerceApi) : PersistStage<Product>() {
+class WoocommerceProductPersistStage(var api: WoocommerceApi) : PersistStage<Product>() {
 
     init {
         addAction(PersistStageAction(PersistActionType.SAVE, updater = { target, _ -> save(target) }))

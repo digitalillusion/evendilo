@@ -12,11 +12,23 @@ spring:
             client-secret: ${EVENDILO_PIERRETAPPETI_OAUTH_SECRET}
             authorization-grant-type: authorization_code
             redirect-uri: ${EVENDILO_ORIGIN}/login/oauth2/code/pierretappeti
+          ebay:
+            provider: ebay
+            client-id: ${EVENDILO_EBAY_OAUTH_CLIENT}
+            client-secret: ${EVENDILO_EBAY_OAUTH_SECRET}
+            authorization-grant-type: authorization_code
+            redirect-uri: ${EVENDILO_ORIGIN}/login/oauth2/code/ebay
         provider:
           pierretappeti:
             authorization-uri: ${EVENDILO_PIERRETAPPETI_URL}/oauth/authorize/
             token-uri: ${EVENDILO_PIERRETAPPETI_URL}/oauth/token/
             user-info-uri: ${EVENDILO_PIERRETAPPETI_URL}/oauth/me/
+            user-info-authentication-method: basic
+            user-name-attribute: user_login
+          ebay:
+            authorization-uri: ${EVENDILO_EBAY_URL}/oauth/authorize/
+            token-uri: ${EVENDILO_EBAY_URL}/oauth/token/
+            user-info-uri: ${EVENDILO_EBAY_URL}/oauth/me/
             user-info-authentication-method: basic
             user-name-attribute: user_login
 

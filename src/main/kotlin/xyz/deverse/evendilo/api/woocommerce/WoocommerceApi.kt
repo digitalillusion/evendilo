@@ -28,7 +28,7 @@ fun convertAttributeTermsToNames(attributes: MutableList<Attribute>) {
     }
 }
 
-class WooCommerceApiCache (
+class WoocommerceApiCache (
     var restTemplate: RestTemplate,
     var categoryCache: HashMap<String, Array<Category>?>,
     var tagsCache: HashMap<String, Array<Tag>?>,
@@ -49,12 +49,12 @@ class WooCommerceApiCache (
 
 @Service
 @Scope
-class WooCommerceApi(var appConfigProperties: AppConfigurationProperties, var restTemplateBuilder: RestTemplateBuilder, var retryTemplate: RetryTemplate) {
-    val logger = logger<WooCommerceApi>()
+class WoocommerceApi(var appConfigProperties: AppConfigurationProperties, var restTemplateBuilder: RestTemplateBuilder, var retryTemplate: RetryTemplate) {
+    val logger = logger<WoocommerceApi>()
 
-    var caches = HashMap<String, WooCommerceApiCache>()
+    var caches = HashMap<String, WoocommerceApiCache>()
 
-    private fun cache() : WooCommerceApiCache {
+    private fun cache() : WoocommerceApiCache {
         var token = SecurityContextHolder.getContext().authentication as OAuth2AuthenticationToken
         return caches.getOrPut(token.authorizedClientRegistrationId) {
             var restTemplate: RestTemplate? = null
@@ -71,9 +71,9 @@ class WooCommerceApi(var appConfigProperties: AppConfigurationProperties, var re
                 }
             }
             if (restTemplate == null) {
-                throw InvalidParameterException("OAuth2AuthenticationToken.authorizedClientRegistrationId cannot be matched with any WooCommerce configuration: ${token.authorizedClientRegistrationId}")
+                throw InvalidParameterException("OAuth2AuthenticationToken.authorizedClientRegistrationId cannot be matched with any Woocommerce configuration: ${token.authorizedClientRegistrationId}")
             }
-            WooCommerceApiCache(restTemplate)
+            WoocommerceApiCache(restTemplate)
         }
     }
 

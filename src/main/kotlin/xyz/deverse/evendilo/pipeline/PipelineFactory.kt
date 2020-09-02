@@ -11,7 +11,7 @@ import xyz.deverse.evendilo.model.Model
 import xyz.deverse.evendilo.model.woocommerce.Product
 import xyz.deverse.evendilo.pipeline.stage.ImportStage
 import xyz.deverse.evendilo.pipeline.stage.PersistStage
-import xyz.deverse.evendilo.pipeline.stage.woocommerce.WooCommerceProductPersistStage
+import xyz.deverse.evendilo.pipeline.stage.woocommerce.WoocommerceProductPersistStage
 import xyz.deverse.importer.*
 import xyz.deverse.importer.generic.ImportTag
 import xyz.deverse.importer.pipeline.Pipeline
@@ -22,7 +22,7 @@ import java.util.function.Consumer
 @Service
 class PipelineFactory<T : Model> (
     val importerBusinessDelegate: ImporterBusinessDelegate,
-    val wooCommerceProductPersistStage: WooCommerceProductPersistStage
+    val wooCommerceProductPersistStage: WoocommerceProductPersistStage
 ) {
     val logger = logger<PipelineFactory<T>>()
     /**

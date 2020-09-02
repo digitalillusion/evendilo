@@ -1,12 +1,13 @@
 package xyz.deverse.evendilo.importer.standard.woocommerce
 
 import org.springframework.stereotype.Service
-import xyz.deverse.evendilo.api.woocommerce.WooCommerceApi
+import xyz.deverse.evendilo.api.woocommerce.WoocommerceApi
 import xyz.deverse.evendilo.functions.mergeDistinct
 import xyz.deverse.evendilo.functions.replaceList
 import xyz.deverse.evendilo.functions.replaceListIndexed
 import xyz.deverse.evendilo.importer.ErrorCode
 import xyz.deverse.evendilo.importer.ImportLineException
+import xyz.deverse.evendilo.importer.standard.EvendiloCsvLine
 import xyz.deverse.evendilo.model.Destination
 import xyz.deverse.evendilo.model.Family
 import xyz.deverse.evendilo.model.woocommerce.Attribute
@@ -16,11 +17,10 @@ import xyz.deverse.evendilo.model.woocommerce.ProductVariation
 import xyz.deverse.importer.AbstractImporter
 import xyz.deverse.importer.ImportMapper
 import xyz.deverse.importer.csv.CsvColumn
-import xyz.deverse.importer.csv.CsvFileReader
 import java.io.File
 
 
-data class StandardWooCommerceProductCsvLine(
+data class StandardWoocommerceProductCsvLine(
         @CsvColumn(0) var sku: String = "",
         @CsvColumn(1) var name: String = "",
         @CsvColumn(2) var type: String = "",
@@ -30,23 +30,12 @@ data class StandardWooCommerceProductCsvLine(
         @CsvColumn(6) var description: String = "",
         @CsvColumn(7) var categoryNames: String = "",
         @CsvColumn(8) var tagNames: String = "",
-        @CsvColumn(9) var imageUrls: String = "",
-
-        @CsvColumn(10) var attr0: String = "",
-        @CsvColumn(11) var attr1: String = "",
-        @CsvColumn(12) var attr2: String = "",
-        @CsvColumn(13) var attr3: String = "",
-        @CsvColumn(14) var attr4: String = "",
-        @CsvColumn(15) var attr5: String = "",
-        @CsvColumn(16) var attr6: String = "",
-        @CsvColumn(17) var attr7: String = "",
-        @CsvColumn(18) var attr8: String = "",
-        @CsvColumn(19) var attr9: String = ""
-) : CsvFileReader.CsvLine<Product>()
+        @CsvColumn(9) var imageUrls: String = ""
+) : EvendiloCsvLine<Product>()
 
 @Service
-class StandardWooCommerceProductImporter(var api: WooCommerceApi) :
-        AbstractImporter<Product, ImportMapper.MappedLine<Product>>(Family.Standard, Destination.WooCommerce) {
+class StandardWoocommerceProductImporter(var api: WoocommerceApi) :
+        AbstractImporter<Product, ImportMapper.MappedLine<Product>>(Family.Standard, Destination.Woocommerce) {
 
     override fun preProcess() {
         api.refreshCache()

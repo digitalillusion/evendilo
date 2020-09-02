@@ -1,15 +1,16 @@
-package xyz.deverse.evendilo.importer.standard.amazon
+package xyz.deverse.evendilo.importer.standard.ebay
 
 import org.springframework.stereotype.Service
+import xyz.deverse.evendilo.functions.replaceList
 import xyz.deverse.evendilo.importer.standard.EvendiloCsvLine
 import xyz.deverse.evendilo.model.Destination
 import xyz.deverse.evendilo.model.Family
-import xyz.deverse.evendilo.model.amazon.Product
+import xyz.deverse.evendilo.model.ebay.Product
 import xyz.deverse.importer.AbstractImporter
 import xyz.deverse.importer.ImportMapper
 import xyz.deverse.importer.csv.CsvColumn
 
-data class StandardAmazonProductCsvLine(
+data class StandardEbayProductCsvLine(
         @CsvColumn(0) var sku: String = "",
         @CsvColumn(1) var name: String = "",
         @CsvColumn(2) var type: String = "",
@@ -23,13 +24,15 @@ data class StandardAmazonProductCsvLine(
 ) : EvendiloCsvLine<Product>()
 
 @Service
-class StandardAmazonProductImporter() :
-        AbstractImporter<Product, ImportMapper.MappedLine<Product>>(Family.Standard, Destination.Amazon) {
+class StandardEbayProductImporter() :
+        AbstractImporter<Product, ImportMapper.MappedLine<Product>>(Family.Standard, Destination.Ebay) {
 
     override fun preProcess() {
     }
 
     override fun onParseLine(line: ImportMapper.MappedLine<Product>) {
+        replaceList(line.nodes) { node ->
+            node;
+        }
     }
-
 }

@@ -1,6 +1,10 @@
 package xyz.deverse.evendilo.importer.business
 
 import org.mapstruct.TargetType
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
+import xyz.deverse.evendilo.config.properties.AppConfigurationProperties
+import xyz.deverse.evendilo.importer.standard.EvendiloCsvLine
 import xyz.deverse.evendilo.logger
 import xyz.deverse.evendilo.model.Destination
 import xyz.deverse.evendilo.model.Model
@@ -16,7 +20,7 @@ abstract class EntityFactory protected constructor(var destination: Destination)
 
     /**
      * Instance a new entity of the given class according to the family of the EntityFactory.
-     * For instance, if `Destination.WooCommerce` and `entityClass` is `PRoduct`, the method invocation will return a new `xyz.deverse.evendilo.model.woocommerce.xyz.deverse.evendilo.model.amazon.Product` instance
+     * For instance, if `Destination.Woocommerce` and `entityClass` is `Product`, the method invocation will return a new `xyz.deverse.evendilo.model.woocommerce.xyz.deverse.evendilo.model.amazon.Product` instance
      * @param entityClass The desired domain entity class
      * @return A new instance of the entity according to the destination
      */
@@ -38,7 +42,21 @@ abstract class EntityFactory protected constructor(var destination: Destination)
     protected abstract fun <T : Model> populateOnCreate(node: T)
 
     fun isImportTagSupported(importTag: ImportTag): Boolean {
-        return Destination.WooCommerce == importTag
+        return destination.name() == importTag.name()
     }
 
+    fun <T: Model> getAttributesMapping(appConfigProperties: AppConfigurationProperties, csvLine: EvendiloCsvLine<T>): Pair<MutableList<String>, Array<String>> {
+        val attributes = mutableListOf<String>()
+        var token = SecurityContextHolder.getContext().authentication as OAuth2AuthenticationToken
+        for (config in appConfigProperties.woocommerce) {
+            val importerConfig = config.importerConfig;
+            if (token.authorizedClientRegistrationId == config.identifier) {
+                importerConfig.attributes.split(",").toList().map { it.trim() }.forEach { attributes.add(it) }
+                break
+            }
+        }
+        val csvLineAttrs = arrayOf(csvLine.attr0, csvLine.attr1, csvLine.attr2, csvLine.attr3,
+                csvLine.attr4, csvLine.attr5, csvLine.attr6, csvLine.attr7, csvLine.attr8, csvLine.attr9)
+        return Pair(attributes, csvLineAttrs)
+    }
 }
