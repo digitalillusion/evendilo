@@ -8,9 +8,9 @@ import xyz.deverse.evendilo.importer.business.ImporterBusinessDelegate
 import xyz.deverse.evendilo.logger
 import xyz.deverse.evendilo.model.Destination
 import xyz.deverse.evendilo.model.Model
-import xyz.deverse.evendilo.model.woocommerce.Product
 import xyz.deverse.evendilo.pipeline.stage.ImportStage
 import xyz.deverse.evendilo.pipeline.stage.PersistStage
+import xyz.deverse.evendilo.pipeline.stage.ebay.EbayProductPersistStage
 import xyz.deverse.evendilo.pipeline.stage.woocommerce.WoocommerceProductPersistStage
 import xyz.deverse.importer.*
 import xyz.deverse.importer.generic.ImportTag
@@ -22,7 +22,8 @@ import java.util.function.Consumer
 @Service
 class PipelineFactory<T : Model> (
     val importerBusinessDelegate: ImporterBusinessDelegate,
-    val wooCommerceProductPersistStage: WoocommerceProductPersistStage
+    val woocommerceProductPersistStage: WoocommerceProductPersistStage,
+    val ebayProductPersistStage: EbayProductPersistStage
 ) {
     val logger = logger<PipelineFactory<T>>()
     /**
@@ -138,8 +139,10 @@ class PipelineFactory<T : Model> (
 
     @Suppress("UNCHECKED_CAST")
     private fun resolvePersistStageForType(type: Class<out Model?>?): PersistStage<T> {
-        if (Product::class.java.isAssignableFrom(type)) {
-            return wooCommerceProductPersistStage as PersistStage<T>
+        if (xyz.deverse.evendilo.model.woocommerce.Product::class.java.isAssignableFrom(type)) {
+            return woocommerceProductPersistStage as PersistStage<T>
+        } else if (xyz.deverse.evendilo.model.ebay.Product::class.java.isAssignableFrom(type)) {
+            return ebayProductPersistStage as PersistStage<T>
         }
         return object : PersistStage<T>() {
             override fun run() {

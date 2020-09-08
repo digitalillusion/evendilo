@@ -21,11 +21,18 @@ data class WoocommerceConfigurationProperties (
     var credentials: WoocommerceCredentials = WoocommerceCredentials()
 )
 
+data class EbayConfigurationProperties (
+        var identifier: String = "",
+        var url: String = "",
+        var merchantLocationKey: String = ""
+)
+
 @Configuration
 @ConfigurationProperties(prefix = "variables")
 data class AppConfigurationProperties(
     var corsAllowedOrigin: String = "*",
-    var woocommerce: MutableList<WoocommerceConfigurationProperties> = mutableListOf()
+    var woocommerce: MutableList<WoocommerceConfigurationProperties> = mutableListOf(),
+    var ebay: MutableList<EbayConfigurationProperties> = mutableListOf()
 ) {
     val logger = logger<AppConfigurationProperties>()
 

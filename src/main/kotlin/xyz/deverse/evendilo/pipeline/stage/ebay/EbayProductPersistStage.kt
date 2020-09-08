@@ -14,6 +14,7 @@ class EbayProductPersistStage(var api: EbayApi) : PersistStage<Product>() {
     }
 
     private fun save(target: Product): Product {
+        api.ensureInventoryLocation()
         return target
     }
 

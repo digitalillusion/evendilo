@@ -1,8 +1,14 @@
 package xyz.deverse.evendilo.model.ebay
 
 import xyz.deverse.evendilo.model.Model
-import xyz.deverse.evendilo.model.woocommerce.Attribute
-import xyz.deverse.evendilo.model.woocommerce.Image
+
+data class Address (
+    var country: String = "it"
+)
+
+data class InventoryLocation (
+    var address: Address = Address()
+)
 
 data class ShipToLocationAvailability (
     var quantity: Long = 0
