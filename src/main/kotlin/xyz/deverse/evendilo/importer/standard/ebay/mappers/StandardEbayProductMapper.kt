@@ -33,7 +33,7 @@ interface StandardEbayProductMapper : CsvFileReader.CsvImportMapper<Product, Sta
     class Finalizer(var appConfigProperties: AppConfigurationProperties, var entityFactory: EbayEntityFactory) {
         @AfterMapping
         fun mapAttributes(csvLine: StandardEbayProductCsvLine, @MappingTarget product: Product) {
-            val (attributes, csvLineAttrs) = entityFactory.getAttributesMapping(appConfigProperties, csvLine)
+            val (attributes, csvLineAttrs) = entityFactory.getAttributesMapping(appConfigProperties.ebay, csvLine)
 
             attributes.forEachIndexed { index, attribute ->
                 product.product.aspects[attribute] = mutableListOf(csvLineAttrs[index])
@@ -43,6 +43,7 @@ interface StandardEbayProductMapper : CsvFileReader.CsvImportMapper<Product, Sta
 
     @Mappings(value = [
         Mapping(target = "id", ignore = true),
+        Mapping(target = "type", expression = "java(ProductType.fromString(standardWoocommerceProductCsvLine.getType()))"),
         Mapping(target = "availability.shipToLocationAvailability.quantity", expression = "java(1)"),
         Mapping(target = "condition", expression = "java(\"NEW\")"),
         Mapping(target = "product.title", source = "imageUrls"),

@@ -10,29 +10,32 @@ data class WoocommerceCredentials (
     var password: String = ""
 )
 
-data class WoocommerceImporterConfig (
+data class ImporterConfig (
     var attributes: String = ""
 )
 
-data class WoocommerceConfigurationProperties (
+open class DestinationConfigurationProperties (
     var identifier: String = "",
-    var url: String = "",
-    var importerConfig: WoocommerceImporterConfig = WoocommerceImporterConfig(),
-    var credentials: WoocommerceCredentials = WoocommerceCredentials()
+    var importerConfig: ImporterConfig = ImporterConfig()
 )
 
+data class WoocommerceConfigurationProperties (
+    var url: String = "",
+    var credentials: WoocommerceCredentials = WoocommerceCredentials()
+) : DestinationConfigurationProperties()
+
 data class EbayConfigurationProperties (
-        var identifier: String = "",
         var url: String = "",
         var merchantLocationKey: String = ""
-)
+) : DestinationConfigurationProperties()
 
 @Configuration
 @ConfigurationProperties(prefix = "variables")
 data class AppConfigurationProperties(
     var corsAllowedOrigin: String = "*",
     var woocommerce: MutableList<WoocommerceConfigurationProperties> = mutableListOf(),
-    var ebay: MutableList<EbayConfigurationProperties> = mutableListOf()
+    var ebay: MutableList<EbayConfigurationProperties> = mutableListOf(),
+    var amazon: MutableList<DestinationConfigurationProperties> = mutableListOf()
 ) {
     val logger = logger<AppConfigurationProperties>()
 

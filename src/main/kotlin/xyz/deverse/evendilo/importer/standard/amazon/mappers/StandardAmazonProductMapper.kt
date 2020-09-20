@@ -18,7 +18,7 @@ interface StandardAmazonProductMapper : CsvFileReader.CsvImportMapper<Product, S
     class Finalizer(var appConfigProperties: AppConfigurationProperties, var entityFactory: AmazonEntityFactory) {
         @AfterMapping
         fun mapAttributes(csvLine: StandardEbayProductCsvLine, @MappingTarget product: Product) {
-            val (attributes, csvLineAttrs) = entityFactory.getAttributesMapping(appConfigProperties, csvLine)
+            val (attributes, csvLineAttrs) = entityFactory.getAttributesMapping(appConfigProperties.amazon, csvLine)
         }
     }
 

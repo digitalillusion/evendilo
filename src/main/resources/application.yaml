@@ -38,7 +38,7 @@ spring:
           pierretappeti-ebay:
             authorization-uri: ${EVENDILO_PIERRETAPPETI_EBAY_OAUTH_AUTH_URL}
             token-uri: ${EVENDILO_PIERRETAPPETI_EBAY_OAUTH_URL}/identity/v1/oauth2/token
-            user-info-uri: ${EVENDILO_PIERRETAPPETI_EBAY_API_URL}/commerce/identity/v1/user/
+            user-info-uri: ${EVENDILO_PIERRETAPPETI_EBAY_OAUTH_USER_URL}/commerce/identity/v1/user/
             user-info-authentication-method: basic
             user-name-attribute: username
 
@@ -59,13 +59,17 @@ variables:
       importerConfig:
         attributes: ${EVENDILO_PIERRETAPPETI_IMPORTER_ATTRIBUTES}
       merchantLocationKey: ${EVENDILO_PIERRETAPPETI_EBAY_MERCHANT_LOCATION_KEY}
+  amazon:
+  - identifier: "pierretappeti-amazon"
+    importerConfig:
+      attributes: ${EVENDILO_PIERRETAPPETI_IMPORTER_ATTRIBUTES}
 
 logging:
   level:
     org:
       springframework:
         security: DEBUG
-#      apache:
-#        http: DEBUG
-#      httpclient:
-#        wire: DEBUG
+      apache:
+        http: DEBUG
+      httpclient:
+        wire: DEBUG

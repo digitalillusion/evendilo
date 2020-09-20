@@ -2,6 +2,7 @@ package xyz.deverse.evendilo.pipeline.stage.ebay
 
 import org.springframework.stereotype.Component
 import xyz.deverse.evendilo.api.ebay.EbayApi
+import xyz.deverse.evendilo.model.ProductType
 import xyz.deverse.evendilo.model.ebay.Product
 import xyz.deverse.evendilo.pipeline.stage.PersistStage
 
@@ -15,6 +16,13 @@ class EbayProductPersistStage(var api: EbayApi) : PersistStage<Product>() {
 
     private fun save(target: Product): Product {
         api.ensureInventoryLocation()
+
+        when (target.type) {
+            ProductType.Simple -> {
+
+            }
+        }
+
         return target
     }
 

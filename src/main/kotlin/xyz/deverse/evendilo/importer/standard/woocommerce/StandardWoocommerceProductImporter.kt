@@ -10,9 +10,9 @@ import xyz.deverse.evendilo.importer.ImportLineException
 import xyz.deverse.evendilo.importer.standard.EvendiloCsvLine
 import xyz.deverse.evendilo.model.Destination
 import xyz.deverse.evendilo.model.Family
+import xyz.deverse.evendilo.model.ProductType
 import xyz.deverse.evendilo.model.woocommerce.Attribute
 import xyz.deverse.evendilo.model.woocommerce.Product
-import xyz.deverse.evendilo.model.woocommerce.ProductType
 import xyz.deverse.evendilo.model.woocommerce.ProductVariation
 import xyz.deverse.importer.AbstractImporter
 import xyz.deverse.importer.ImportMapper

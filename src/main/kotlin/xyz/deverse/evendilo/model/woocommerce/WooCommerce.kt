@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonValue
 import xyz.deverse.evendilo.importer.ErrorCode
 import xyz.deverse.evendilo.importer.ImportLineException
 import xyz.deverse.evendilo.model.Model
+import xyz.deverse.evendilo.model.ProductType
 import kotlin.reflect.full.isSubclassOf
 
 data class Tag (
@@ -25,29 +26,6 @@ data class Image (
     override val id: Long?,
     var src: String = ""
 ) : Model
-
-enum class ProductType {
-    Simple, Grouped, External, Variable, Variation;
-
-    @JsonValue
-    override fun toString(): String {
-        return super.toString().toLowerCase()
-    }
-
-    companion object {
-        @JvmStatic
-        fun fromString(type: String): ProductType {
-            return when (type.toLowerCase()) {
-                Simple.toString() -> Simple
-                Grouped.toString() -> Grouped
-                External.toString() -> External
-                Variable.toString() -> Variable
-                Variation.toString() -> Variation
-                else -> throw ImportLineException(ErrorCode.IMPORT_LINE_ERROR_PRODUCT_TYPE)
-            }
-        }
-    }
-}
 
 sealed class Attribute (
         override val id: Long?,

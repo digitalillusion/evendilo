@@ -6,6 +6,7 @@ import xyz.deverse.evendilo.config.properties.AppConfigurationProperties
 import xyz.deverse.evendilo.importer.standard.EvendiloCsvLine
 import xyz.deverse.evendilo.importer.standard.WoocommerceEntityFactory
 import xyz.deverse.evendilo.importer.standard.woocommerce.StandardWoocommerceProductCsvLine
+import xyz.deverse.evendilo.model.ProductType
 import xyz.deverse.evendilo.model.woocommerce.*
 import xyz.deverse.importer.csv.CsvFileReader
 
@@ -55,7 +56,7 @@ interface StandardWoocommerceProductMapper : CsvFileReader.CsvImportMapper<Produ
     class Finalizer(var appConfigProperties: AppConfigurationProperties, var entityFactory: WoocommerceEntityFactory) {
         @AfterMapping
         fun mapAttributes(csvLine: StandardWoocommerceProductCsvLine, @MappingTarget product: Product) {
-            val (attributes, csvLineAttrs) = entityFactory.getAttributesMapping(appConfigProperties, csvLine)
+            val (attributes, csvLineAttrs) = entityFactory.getAttributesMapping(appConfigProperties.woocommerce, csvLine)
 
             product.attributes = mutableListOf()
             attributes.forEachIndexed { index, attribute ->
