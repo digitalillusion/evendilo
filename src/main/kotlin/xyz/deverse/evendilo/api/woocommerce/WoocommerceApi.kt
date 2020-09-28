@@ -1,10 +1,13 @@
 package xyz.deverse.evendilo.api.woocommerce
 
+import xyz.deverse.evendilo.config.support.LoggingRequestInterceptor
+import org.apache.http.impl.client.HttpClientBuilder
 import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.context.annotation.Scope
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpMethod
 import org.springframework.http.ResponseEntity
+import org.springframework.http.client.BufferingClientHttpRequestFactory
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.retry.support.RetryTemplate
 import org.springframework.security.core.context.SecurityContextHolder
@@ -18,6 +21,7 @@ import xyz.deverse.evendilo.logger
 import xyz.deverse.evendilo.model.woocommerce.*
 import java.security.InvalidParameterException
 
+
 fun convertAttributesToSingle(variation: ProductVariation) {
     replaceList(variation.attributes) { it.asSingle() }
 }
@@ -28,13 +32,13 @@ fun convertAttributeTermsToNames(attributes: MutableList<Attribute>) {
     }
 }
 
-class WoocommerceApiCache (
-    var restTemplate: RestTemplate,
-    var categoryCache: HashMap<String, Array<Category>?>,
-    var tagsCache: HashMap<String, Array<Tag>?>,
-    var productCache: HashMap<String, Array<Product>?>,
-    var attributeCache: MutableList<Attribute>,
-    var attributeTermCache: HashMap<String, Array<AttributeTerm>>
+class WoocommerceApiCache(
+        var restTemplate: RestTemplate,
+        var categoryCache: HashMap<String, Array<Category>?>,
+        var tagsCache: HashMap<String, Array<Tag>?>,
+        var productCache: HashMap<String, Array<Product>?>,
+        var attributeCache: MutableList<Attribute>,
+        var attributeTermCache: HashMap<String, Array<AttributeTerm>>
 ) {
     constructor(restTemplate: RestTemplate) :
             this(restTemplate, HashMap(), HashMap(), HashMap(), mutableListOf(), HashMap())
@@ -58,6 +62,7 @@ class WoocommerceApi(var appConfigProperties: AppConfigurationProperties, var re
         var token = SecurityContextHolder.getContext().authentication as OAuth2AuthenticationToken
         return caches.getOrPut(token.authorizedClientRegistrationId) {
             var restTemplate: RestTemplate? = null
+            val factory = HttpComponentsClientHttpRequestFactory(HttpClientBuilder.create().build())
             for (config in appConfigProperties.woocommerce) {
                 val credentials = config.credentials;
                 if (token.authorizedClientRegistrationId == config.identifier) {
@@ -65,7 +70,8 @@ class WoocommerceApi(var appConfigProperties: AppConfigurationProperties, var re
                     restTemplate = restTemplateBuilder
                             .rootUri(config.url)
                             .basicAuthentication(credentials.username, credentials.password)
-                            .requestFactory(HttpComponentsClientHttpRequestFactory::class.java)
+                            .requestFactory { BufferingClientHttpRequestFactory(factory) }
+                            .additionalInterceptors(LoggingRequestInterceptor())
                             .build()
                     break
                 }

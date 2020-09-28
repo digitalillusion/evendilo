@@ -69,7 +69,4 @@ logging:
     org:
       springframework:
         security: DEBUG
-      apache:
-        http: DEBUG
-      httpclient:
-        wire: DEBUG
+    xyz.deverse.evendilo.config.support.LoggingRequestInterceptor: DEBUG

@@ -19,7 +19,8 @@ class EbayProductPersistStage(var api: EbayApi) : PersistStage<Product>() {
 
         when (target.type) {
             ProductType.Simple -> {
-
+                api.createProduct(target)
+                api.createOffer(target)
             }
         }
 

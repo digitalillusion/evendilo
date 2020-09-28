@@ -35,9 +35,13 @@ class StandardEbayProductImporter(var api: EbayApi) :
 
     override fun onParseLine(line: ImportMapper.MappedLine<Product>) {
         replaceList(line.nodes) { node ->
+            node.product.aspects = node.product.aspects
+                    .filter { entry -> entry.value.joinToString().isNotBlank() }
+                    .toMutableMap()
+
             when (node.type) {
                 ProductType.Simple -> {
-
+                    node.offer.categoryId = api.getCategorySuggestions()
                 }
             }
 
