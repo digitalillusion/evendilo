@@ -2,6 +2,7 @@ package xyz.deverse.evendilo.importer.standard.woocommerce
 
 import org.springframework.stereotype.Service
 import xyz.deverse.evendilo.api.woocommerce.WoocommerceApi
+import xyz.deverse.evendilo.config.properties.AppConfigurationProperties
 import xyz.deverse.evendilo.functions.mergeDistinct
 import xyz.deverse.evendilo.functions.replaceList
 import xyz.deverse.evendilo.functions.replaceListIndexed
@@ -34,7 +35,7 @@ data class StandardWoocommerceProductCsvLine(
 ) : EvendiloCsvLine<Product>()
 
 @Service
-class StandardWoocommerceProductImporter(var api: WoocommerceApi) :
+class StandardWoocommerceProductImporter(var api: WoocommerceApi, var appConfigProperties: AppConfigurationProperties) :
         AbstractImporter<Product, ImportMapper.MappedLine<Product>>(Family.Standard, Destination.Woocommerce) {
 
     override fun preProcess() {
@@ -50,6 +51,12 @@ class StandardWoocommerceProductImporter(var api: WoocommerceApi) :
             replaceList(node.tags) { nodeTag ->
                 api.findTag(nodeTag)
                         ?: throw ImportLineException(ErrorCode.IMPORT_LINE_ERROR_PRODUCT_TAG)
+            }
+            replaceList(node.images) { image ->
+                if (image.src.startsWith("/")) {
+                    image.src = appConfigProperties.woocommerceConfig().importerConfig.imageUploadBaseUrl + image.src
+                }
+                image
             }
             replaceListIndexed(node.attributes) { index, nodeAttribute ->
                 val existing = api.findAttribute(nodeAttribute)

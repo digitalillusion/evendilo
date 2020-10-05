@@ -19,7 +19,6 @@ import xyz.deverse.evendilo.config.properties.AppConfigurationProperties
 import xyz.deverse.evendilo.functions.replaceList
 import xyz.deverse.evendilo.logger
 import xyz.deverse.evendilo.model.woocommerce.*
-import java.security.InvalidParameterException
 
 
 fun convertAttributesToSingle(variation: ProductVariation) {
@@ -61,24 +60,16 @@ class WoocommerceApi(var appConfigProperties: AppConfigurationProperties, var re
     private fun cache() : WoocommerceApiCache {
         var token = SecurityContextHolder.getContext().authentication as OAuth2AuthenticationToken
         return caches.getOrPut(token.authorizedClientRegistrationId) {
-            var restTemplate: RestTemplate? = null
             val factory = HttpComponentsClientHttpRequestFactory(HttpClientBuilder.create().build())
-            for (config in appConfigProperties.woocommerce) {
-                val credentials = config.credentials;
-                if (token.authorizedClientRegistrationId == config.identifier) {
-                    logger.info("Instantiated REST client for ${config.identifier}")
-                    restTemplate = restTemplateBuilder
-                            .rootUri(config.url)
-                            .basicAuthentication(credentials.username, credentials.password)
-                            .requestFactory { BufferingClientHttpRequestFactory(factory) }
-                            .additionalInterceptors(LoggingRequestInterceptor())
-                            .build()
-                    break
-                }
-            }
-            if (restTemplate == null) {
-                throw InvalidParameterException("OAuth2AuthenticationToken.authorizedClientRegistrationId cannot be matched with any Woocommerce configuration: ${token.authorizedClientRegistrationId}")
-            }
+            val config = appConfigProperties.woocommerceConfig()
+            val credentials = config.credentials;
+            logger.info("Instantiated REST client for ${config.identifier}")
+            var restTemplate = restTemplateBuilder
+                    .rootUri(config.url)
+                    .basicAuthentication(credentials.username, credentials.password)
+                    .requestFactory { BufferingClientHttpRequestFactory(factory) }
+                    .additionalInterceptors(LoggingRequestInterceptor())
+                    .build()
             WoocommerceApiCache(restTemplate)
         }
     }

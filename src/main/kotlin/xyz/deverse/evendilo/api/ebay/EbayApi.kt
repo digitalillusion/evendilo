@@ -24,8 +24,6 @@ import xyz.deverse.evendilo.model.ebay.EbayConstants
 import xyz.deverse.evendilo.model.ebay.InventoryLocation
 import xyz.deverse.evendilo.model.ebay.Offer
 import xyz.deverse.evendilo.model.ebay.Product
-import xyz.deverse.evendilo.model.woocommerce.Tag
-import java.security.InvalidParameterException
 
 
 class EbayApiCache(
@@ -59,27 +57,20 @@ class EbayApi(
     private fun cache() : EbayApiCache {
         var token = SecurityContextHolder.getContext().authentication as OAuth2AuthenticationToken
         return caches.getOrPut(token.authorizedClientRegistrationId) {
-            var restTemplate: RestTemplate? = null
             val factory = HttpComponentsClientHttpRequestFactory(HttpClientBuilder.create().build())
-            for (config in appConfigProperties.ebay) {
-                if (token.authorizedClientRegistrationId == config.identifier) {
-                    val client: OAuth2AuthorizedClient = clientService.loadAuthorizedClient(
-                            token.authorizedClientRegistrationId,
-                            token.name
-                    )
-                    restTemplate = restTemplateBuilder
-                            .rootUri(config.url)
-                            .defaultHeader("Authorization", "Bearer " + client.accessToken.tokenValue)
-                            .defaultHeader("Content-Language", EbayConstants.CONTENT_LANGUAGE)
-                            .additionalInterceptors(LoggingRequestInterceptor())
-                            .requestFactory { BufferingClientHttpRequestFactory(factory) }
-                            .build()
-                    break
-                }
-            }
-            if (restTemplate == null) {
-                throw InvalidParameterException("OAuth2AuthenticationToken.authorizedClientRegistrationId cannot be matched with any Ebay configuration: ${token.authorizedClientRegistrationId}")
-            }
+            val config = appConfigProperties.ebayConfig();
+            val client: OAuth2AuthorizedClient = clientService.loadAuthorizedClient(
+                    token.authorizedClientRegistrationId,
+                    token.name
+            )
+            logger.info("Instantiated REST client for ${config.identifier}")
+            var restTemplate = restTemplateBuilder
+                    .rootUri(config.url)
+                    .defaultHeader("Authorization", "Bearer " + client.accessToken.tokenValue)
+                    .defaultHeader("Content-Language", EbayConstants.CONTENT_LANGUAGE)
+                    .additionalInterceptors(LoggingRequestInterceptor())
+                    .requestFactory { BufferingClientHttpRequestFactory(factory) }
+                    .build()
             EbayApiCache(restTemplate)
         }
     }
@@ -135,6 +126,7 @@ class EbayApi(
 
     fun getCategorySuggestions(): String {
         logger.info("Retrieving category suggestions")
+        return ""
     }
 
 }

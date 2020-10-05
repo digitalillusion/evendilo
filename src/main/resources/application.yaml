@@ -50,6 +50,7 @@ variables:
       url: ${EVENDILO_PIERRETAPPETI_WOOCOMMERCE_API_URL}
       importerConfig:
         attributes: ${EVENDILO_PIERRETAPPETI_IMPORTER_ATTRIBUTES}
+        imageUploadBaseUrl: ${EVENDILO_PIERRETAPPETI_URL}/media
       credentials:
         username: ${EVENDILO_PIERRETAPPETI_WOOCOMMERCE_API_USERNAME}
         password: ${EVENDILO_PIERRETAPPETI_WOOCOMMERCE_API_PASSWORD}

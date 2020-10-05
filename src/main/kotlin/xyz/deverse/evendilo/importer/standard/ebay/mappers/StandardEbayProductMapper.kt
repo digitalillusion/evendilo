@@ -76,7 +76,7 @@ interface StandardEbayProductMapper : CsvFileReader.CsvImportMapper<Product, Sta
         Mapping(target = "product.imageUrls", source = "imageUrls", qualifiedByName = ["toImages"]),
         Mapping(target = "offer.pricingSummary.price.value", source = "regular_price", qualifiedByName = ["toPrice"]),
         Mapping(target = "offer.sku", source = "sku"),
-        Mapping(target = "offer.storeCategoryNames", source = "categories", qualifiedByName = ["toCategories"])
+        Mapping(target = "offer.storeCategoryNames", source = "categoryNames", qualifiedByName = ["toCategories"])
     ])
     override fun toNode(standardEbayProductCsvLine: StandardEbayProductCsvLine): Product
 }
