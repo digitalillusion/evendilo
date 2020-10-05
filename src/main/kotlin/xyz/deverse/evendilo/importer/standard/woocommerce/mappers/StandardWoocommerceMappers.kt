@@ -9,6 +9,9 @@ import xyz.deverse.evendilo.importer.standard.woocommerce.StandardWoocommercePro
 import xyz.deverse.evendilo.model.ProductType
 import xyz.deverse.evendilo.model.woocommerce.*
 import xyz.deverse.importer.csv.CsvFileReader
+import java.text.DecimalFormat
+import java.text.NumberFormat
+import kotlin.math.roundToInt
 
 @Component
 class WoocommerceProductMapperHelper {
@@ -31,6 +34,16 @@ class WoocommerceProductMapperHelper {
                     .map { Category(null, it.trim()) }.toMutableList()
         } else {
             mutableListOf()
+        }
+    }
+
+    @Named("toPrice")
+    fun toPrice(price: String): String {
+        return if (price.isNotEmpty()) {
+            val floatPrice = price.replace(",", ".").trim().toFloat()
+            ((floatPrice * 100.0).roundToInt() / 100.0).toString()
+        } else {
+            ""
         }
     }
 
@@ -72,6 +85,7 @@ interface StandardWoocommerceProductMapper : CsvFileReader.CsvImportMapper<Produ
         Mapping(target = "description", expression = "java(org.apache.commons.text.StringEscapeUtils.escapeJava(standardWoocommerceProductCsvLine.getDescription()))"),
         Mapping(target = "short_description", expression = "java(org.apache.commons.text.StringEscapeUtils.escapeJava(standardWoocommerceProductCsvLine.getShort_description()))"),
         Mapping(source = "imageUrls", target = "images", qualifiedByName = ["toImages"]),
+        Mapping(target = "regular_price", source = "regular_price", qualifiedByName = ["toPrice"]),
         Mapping(source = "categoryNames", target = "categories", qualifiedByName = ["toCategories"]),
         Mapping(source = "tagNames", target = "tags", qualifiedByName = ["toTags"])
     ])

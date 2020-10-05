@@ -7,11 +7,8 @@ import xyz.deverse.evendilo.importer.standard.EbayEntityFactory
 import xyz.deverse.evendilo.importer.standard.EvendiloCsvLine
 import xyz.deverse.evendilo.importer.standard.ebay.StandardEbayProductCsvLine
 import xyz.deverse.evendilo.model.ProductType
-import xyz.deverse.evendilo.model.ebay.EbayConstants
 import xyz.deverse.evendilo.model.ebay.Product
 import xyz.deverse.importer.csv.CsvFileReader
-import java.text.NumberFormat
-import java.util.*
 
 @Component
 class EbayProductMapperHelper {
@@ -29,8 +26,7 @@ class EbayProductMapperHelper {
     @Named("toPrice")
     fun toPrice(price: String): Float {
         return if (price.isNotEmpty()) {
-            val format: NumberFormat = NumberFormat.getInstance(EbayConstants.LOCALE)
-            format.parse(price.trim()).toFloat()
+            price.trim().replace(",", ".").toFloat()
         } else {
             0f
         }

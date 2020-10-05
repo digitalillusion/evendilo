@@ -7,7 +7,6 @@ import java.util.*
 
 class EbayConstants {
     companion object {
-        val LOCALE: Locale = Locale.ITALY;
         const val COUNTRY: String = "IT";
         const val CONTENT_LANGUAGE: String = "it-IT";
         const val MARKETPLACE_ID: String = "EBAY_IT"

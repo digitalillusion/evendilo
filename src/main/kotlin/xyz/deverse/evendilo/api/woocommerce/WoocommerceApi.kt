@@ -175,7 +175,7 @@ class WoocommerceApi(var appConfigProperties: AppConfigurationProperties, var re
         val sku = product.sku
         val products = cache().productCache
                 .getOrPut(search)  {
-                    logger.info("Searching product $search (type=$type, sku=$sku)")
+                    logger.info("Searching product $search (sku=$sku)")
                     retryTemplate.execute<Array<Product>, Exception> { _ ->
                         rest().getForObject("/wp-json/wc/v3/products?search={search}&type={type}&sku={sku}", Array<Product>::class.java, search, type, sku)
                     }
@@ -189,6 +189,19 @@ class WoocommerceApi(var appConfigProperties: AppConfigurationProperties, var re
         throw IllegalStateException("Obtained a count of ${products.size} products for name=${product.name}: ${products.map { it.id }.joinToString(", ")}")
     }
 
+    fun findProductVariation(product: Product, variation: ProductVariation): ProductVariation? {
+        val sku = variation.sku
+        val variations = retryTemplate.execute<Array<ProductVariation>, Exception> { _ ->
+            rest().getForObject("/wp-json/wc/v3/products/{productId}/variations?sku={sku}", Array<ProductVariation>::class.java, product.id, sku)
+        }
+
+        if (variations == null || variations.isEmpty()) {
+            return null
+        } else if (variations.size == 1) {
+            return variations[0]
+        }
+        throw IllegalStateException("Obtained a count of ${variations.size} product varationss for sku=${product.sku}: ${variations.map { it.id }.joinToString(", ")}")
+    }
 
     fun findAttribute(attribute: Attribute) : Attribute? {
         if (cache().attributeCache.isEmpty() || !cache().attributeCache.any() { it.name == attribute.name }) {
@@ -288,6 +301,20 @@ class WoocommerceApi(var appConfigProperties: AppConfigurationProperties, var re
             rest().postForObject("/wp-json/wc/v3/products/{productId}/variations", variation, ProductVariation::class.java, product.id)!!
         }
         product.images.add(responseVariation.image)
+
+        cache().productCache[product.name]!![0].variations.replaceAll { v -> if (v.sku == responseVariation.sku) { responseVariation } else { v } }
+        return responseVariation
+    }
+
+    fun updateProductVariation(product: Product, variation: ProductVariation) : ProductVariation {
+        logger.info("Updating product ${product.name} (${product.id}) variation ${variation.sku}")
+        convertAttributeTermsToNames(variation.attributes)
+        convertAttributesToSingle(variation)
+        val response = retryTemplate.execute<ResponseEntity<ProductVariation>, Exception> { _ ->
+            val requestEntity: HttpEntity<ProductVariation> = HttpEntity(variation)
+            rest().exchange("/wp-json/wc/v3/products/{productId}/variations/{variationId}", HttpMethod.PUT, requestEntity, product.id!!, variation.id!!)
+        }
+        val responseVariation = response.body!!
 
         cache().productCache[product.name]!![0].variations.replaceAll { v -> if (v.sku == responseVariation.sku) { responseVariation } else { v } }
         return responseVariation

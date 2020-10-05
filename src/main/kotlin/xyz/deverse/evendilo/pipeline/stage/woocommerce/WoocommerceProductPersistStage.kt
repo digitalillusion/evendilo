@@ -3,6 +3,7 @@ package xyz.deverse.evendilo.pipeline.stage.woocommerce
 import org.springframework.stereotype.Component
 import xyz.deverse.evendilo.api.woocommerce.WoocommerceApi
 import xyz.deverse.evendilo.functions.replaceList
+import xyz.deverse.evendilo.model.ProductType
 import xyz.deverse.evendilo.model.woocommerce.Product
 import xyz.deverse.evendilo.pipeline.stage.PersistStage
 
@@ -22,18 +23,26 @@ class WoocommerceProductPersistStage(var api: WoocommerceApi) : PersistStage<Pro
     }
 
     private fun update(target: Product): Product {
+        var variationCreated = target.type != ProductType.Variation
         replaceList(target.variations) { variation ->
-            if (variation.id == null) {
+            if (variation.id == null || variation.sku.isNotBlank()) {
                 replaceList(target.attributes) { attribute ->
                     val optionsToAdd = variation.attributes.find { it.name == attribute.name }?.options ?: mutableListOf()
                     api.updateAttribute(attribute, optionsToAdd)
                 }
                 variation.attributes.replaceAll { api.createAttribute(it) }
-                api.createProductVariation(target, variation)
+                if (variation.id == null) {
+                    variationCreated = true
+                    api.createProductVariation(target, variation)
+                } else {
+                    api.updateProductVariation(target, variation)
+                }
             }
             variation
         }
-        api.updateProduct(target);
+        if (variationCreated) {
+            api.updateProduct(target);
+        }
         return target
     }
 

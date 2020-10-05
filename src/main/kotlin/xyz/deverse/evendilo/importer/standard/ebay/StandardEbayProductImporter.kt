@@ -16,7 +16,7 @@ data class StandardEbayProductCsvLine(
         @CsvColumn(0) var sku: String = "",
         @CsvColumn(1) var name: String = "",
         @CsvColumn(2) var type: String = "",
-        @CsvColumn(3) var sale_price: String = "",
+        @CsvColumn(3) var taxed_price: String = "",
         @CsvColumn(4) var regular_price: String = "",
         @CsvColumn(5) var short_description: String = "",
         @CsvColumn(6) var description: String = "",

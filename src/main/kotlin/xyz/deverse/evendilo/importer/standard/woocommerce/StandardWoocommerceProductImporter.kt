@@ -25,7 +25,7 @@ data class StandardWoocommerceProductCsvLine(
         @CsvColumn(0) var sku: String = "",
         @CsvColumn(1) var name: String = "",
         @CsvColumn(2) var type: String = "",
-        @CsvColumn(3) var sale_price: String = "",
+        @CsvColumn(3) var taxed_price: String = "",
         @CsvColumn(4) var regular_price: String = "",
         @CsvColumn(5) var short_description: String = "",
         @CsvColumn(6) var description: String = "",
@@ -81,11 +81,18 @@ class StandardWoocommerceProductImporter(var api: WoocommerceApi, var appConfigP
                 variationAttributes.add(attribute.copy(options = optionsCopy))
             }
 
+            val existing = api.findProduct(node)
+
             when (node.type) {
                 ProductType.Simple-> {
+                    existing?.let { node.from(it) }
                     node
                 }
                 ProductType.Variable -> {
+                    existing?.let {
+                        node.images = it.images
+                        node.from(it)
+                    }
                     node.attributes = validAttributes.mapIndexed { index, a ->
                         val existingTerms = node.attributes.find { it.name == a.name }?.options ?: mutableListOf()
                         mergeDistinct(a.options, existingTerms)
@@ -95,7 +102,7 @@ class StandardWoocommerceProductImporter(var api: WoocommerceApi, var appConfigP
                     node
                 }
                 ProductType.Variation -> {
-                    val result = api.findProduct(node) ?: node
+                    val result = existing ?: node
                     result.attributes = validAttributes.mapIndexed { index, a ->
                         val existingTerms = result.attributes.find { it.name == a.name }?.options ?: mutableListOf()
                         mergeDistinct(a.options, existingTerms)
@@ -103,19 +110,24 @@ class StandardWoocommerceProductImporter(var api: WoocommerceApi, var appConfigP
                         a
                     }.toMutableList()
 
-                    val imageName = File(node.images[0].src).nameWithoutExtension
+                    val imageName = "(.+?)(-\\d*)*\$".toRegex().find(File(node.images[0].src).nameWithoutExtension)?.groupValues!![1]
                     val image = result.images.find { it.src.contains(imageName) } ?: node.images[0]
                     val sku = node.sku + "_" + variationAttributes.map { a: Attribute -> a.asSingle().option?.asName()?.name }.joinToString("_").replace("\\s+".toRegex(), "-")
                     val description = if (node != result) { "" } else { node.description }
-                    result.variations.add(ProductVariation(
-                        null,
-                        sku,
-                        description,
-                        node.regular_price,
-                        node.sale_price,
-                        image,
-                        variationAttributes
-                    ))
+                    val variation = ProductVariation(
+                            null,
+                            sku,
+                            description,
+                            node.regular_price,
+                            image,
+                            variationAttributes
+                    )
+                    val existingVariation = api.findProductVariation(result, variation)
+                    existingVariation?.let {
+                        variation.from(it)
+                        result.variations.removeIf { v -> it.id == v.id }
+                    }
+                    result.variations.add(variation)
                     result
                 }
                 else -> {

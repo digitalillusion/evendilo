@@ -5,11 +5,20 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonInclude.Include
 import com.fasterxml.jackson.annotation.JsonValue
+import xyz.deverse.evendilo.functions.replaceList
 import xyz.deverse.evendilo.importer.ErrorCode
 import xyz.deverse.evendilo.importer.ImportLineException
 import xyz.deverse.evendilo.model.Model
 import xyz.deverse.evendilo.model.ProductType
+import java.io.File
+import java.util.*
 import kotlin.reflect.full.isSubclassOf
+
+class WooCommerce {
+    companion object {
+        val LOCALE: Locale = Locale.ITALY;
+    }
+}
 
 data class Tag (
         override val id: Long?,
@@ -136,7 +145,6 @@ data class Product(
         var name: String,
         var type: ProductType,
         var regular_price: String,
-        var sale_price: String,
         var description: String,
         var short_description: String,
         var categories: MutableList<Category>,
@@ -145,22 +153,34 @@ data class Product(
         var attributes: MutableList<Attribute>,
         var variations: MutableList<ProductVariation>
 ) : Model {
-    constructor(): this(null, "", "", ProductType.Simple, "", "", "", "",
+    constructor(): this(null, "", "", ProductType.Simple, "", "", "",
             mutableListOf<Category>(), mutableListOf<Tag>(), mutableListOf<Image>(), mutableListOf<Attribute>(),
             mutableListOf<ProductVariation>())
+
+    fun from(product: Product) {
+        this.id = product.id
+        replaceList(this.images) {
+            val imageName = "(.+?)(-\\d*)*\$".toRegex().find(File(it.src).nameWithoutExtension)?.groupValues!![1]
+            product.images.find { image -> image.src.contains(imageName) } ?: it
+        }
+        this.variations = product.variations
+    }
 }
 
 data class ProductVariation (
-        override val id: Long?,
+        override var id: Long?,
         var sku: String,
         var description: String,
         var regular_price: String,
-        var sale_price: String,
         var image: Image,
         var attributes: MutableList<Attribute>
 ) : Model {
-    constructor() : this(null, "", "", "", "", Image(null), mutableListOf<Attribute>())
+    constructor() : this(null, "", "", "", Image(null), mutableListOf<Attribute>())
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    constructor(id: Long) : this(id, "", "", "", "", Image(null), mutableListOf<Attribute>())
+    constructor(id: Long) : this(id, "", "", "", Image(null), mutableListOf<Attribute>())
+
+    fun from(productVariation: ProductVariation) {
+        this.id = productVariation.id
+    }
 }
