@@ -45,7 +45,6 @@ data class AppConfigurationProperties(
     fun woocommerceConfig() : WoocommerceConfigurationProperties {
         var token = SecurityContextHolder.getContext().authentication as OAuth2AuthenticationToken
         for (config in woocommerce) {
-            val importerConfig = config.importerConfig;
             if (token.authorizedClientRegistrationId == config.identifier) {
                 return config
             }

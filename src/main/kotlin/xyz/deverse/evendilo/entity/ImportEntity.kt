@@ -23,5 +23,6 @@ class ImportEntityKey (
 @Entity
 class ImportEntity (
     @EmbeddedId var id: ImportEntityKey = ImportEntityKey(),
+    var version: Int = 0,
     var timestamp: Long = 0
 )

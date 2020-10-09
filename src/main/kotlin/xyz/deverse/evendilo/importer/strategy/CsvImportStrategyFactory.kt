@@ -49,19 +49,19 @@ class CsvImportStrategyFactory(
     fun setup() {
         strategies.add(object : CsvImportStrategyBuilder<xyz.deverse.evendilo.model.amazon.Product, StandardAmazonProductCsvLine>() {}
                 .withConversionService(conversionService)
-                .withRowMapper(standardAmazonProductMapper)
+                .withRowMapper { standardAmazonProductMapper }
                 .withPostProcessCondition(ImportStrategy.PostProcessCondition.ON_ALL_LINES)
                 .withFilterModifier { filter -> importerBusinessDelegate.modifyImportFilter(filter, Family.Standard, Destination.Amazon) }
                 .build())
         strategies.add(object : CsvImportStrategyBuilder<xyz.deverse.evendilo.model.ebay.Product, StandardEbayProductCsvLine>() {}
                 .withConversionService(conversionService)
-                .withRowMapper(standardEbayProductMapper)
+                .withRowMapper { standardEbayProductMapper }
                 .withPostProcessCondition(ImportStrategy.PostProcessCondition.ON_ALL_LINES)
                 .withFilterModifier { filter -> importerBusinessDelegate.modifyImportFilter(filter, Family.Standard, Destination.Ebay) }
                 .build())
         strategies.add(object : CsvImportStrategyBuilder<xyz.deverse.evendilo.model.woocommerce.Product, StandardWoocommerceProductCsvLine>() {}
                 .withConversionService(conversionService)
-                .withRowMapper(standardWoocommerceProductMapper)
+                .withRowMapper { standardWoocommerceProductMapper }
                 .withPostProcessCondition(ImportStrategy.PostProcessCondition.ON_ALL_LINES)
                 .withFilterModifier { filter -> importerBusinessDelegate.modifyImportFilter(filter, Family.Standard, Destination.Woocommerce) }
                 .build())

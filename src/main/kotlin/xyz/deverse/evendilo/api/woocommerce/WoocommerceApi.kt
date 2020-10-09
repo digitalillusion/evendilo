@@ -171,7 +171,6 @@ class WoocommerceApi(var appConfigProperties: AppConfigurationProperties, var re
 
     fun findProduct(product: Product) : Product? {
         val search = product.name
-        val type = product.type
         val sku = product.sku
         val products = cache().productCache
                 .getOrPut(search)  {
