@@ -22,16 +22,16 @@ import java.io.File
 
 
 data class StandardWoocommerceProductCsvLine(
-        @CsvColumn(0) var sku: String = "",
-        @CsvColumn(1) var name: String = "",
-        @CsvColumn(2) var type: String = "",
-        @CsvColumn(3) var taxed_price: String = "",
-        @CsvColumn(4) var regular_price: String = "",
-        @CsvColumn(5) var short_description: String = "",
-        @CsvColumn(6) var description: String = "",
-        @CsvColumn(7) var categoryNames: String = "",
-        @CsvColumn(8) var tagNames: String = "",
-        @CsvColumn(9) var imageUrls: String = ""
+        @CsvColumn(1) var sku: String = "",
+        @CsvColumn(2) var name: String = "",
+        @CsvColumn(3) var type: String = "",
+        @CsvColumn(4) var taxed_price: String = "",
+        @CsvColumn(5) var regular_price: String = "",
+        @CsvColumn(6) var short_description: String = "",
+        @CsvColumn(7) var description: String = "",
+        @CsvColumn(8) var categoryNames: String = "",
+        @CsvColumn(9) var tagNames: String = "",
+        @CsvColumn(10) var imageUrls: String = ""
 ) : EvendiloCsvLine<Product>()
 
 @Service

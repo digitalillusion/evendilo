@@ -6,8 +6,6 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonInclude.Include
 import com.fasterxml.jackson.annotation.JsonValue
 import xyz.deverse.evendilo.functions.replaceList
-import xyz.deverse.evendilo.importer.ErrorCode
-import xyz.deverse.evendilo.importer.ImportLineException
 import xyz.deverse.evendilo.model.Model
 import xyz.deverse.evendilo.model.ProductType
 import java.io.File

@@ -3,7 +3,6 @@ package xyz.deverse.evendilo.model.ebay
 import xyz.deverse.evendilo.api.ebay.EbayApi
 import xyz.deverse.evendilo.model.Model
 import xyz.deverse.evendilo.model.ProductType
-import java.util.*
 
 class EbayConstants {
     companion object {

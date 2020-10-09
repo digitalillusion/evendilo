@@ -1,16 +1,26 @@
 package xyz.deverse.evendilo.importer.business
 
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import org.springframework.stereotype.Service
+import xyz.deverse.evendilo.entity.ImportEntity
+import xyz.deverse.evendilo.entity.ImportEntityKey
 import xyz.deverse.evendilo.model.Destination
 import xyz.deverse.evendilo.model.Family
 import xyz.deverse.evendilo.model.Model
+import xyz.deverse.evendilo.repository.ImportEntityRepository
 import xyz.deverse.importer.ImportLine
 import xyz.deverse.importer.Importer
+import xyz.deverse.importer.ReadFilter
 import xyz.deverse.importer.generic.ImportTag
+import java.time.LocalDateTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import java.util.*
+import kotlin.math.max
 
 @Service
-class ImporterBusinessDelegate(var importers: List<Importer<out Model, out ImportLine>>, var entityFactories: List<EntityFactory>) {
+class ImporterBusinessDelegate(var importers: List<Importer<out Model, out ImportLine>>, var entityFactories: List<EntityFactory>, var importEntityRepository: ImportEntityRepository) {
 
     fun <T : Model, S : ImportLine> getImporterFor(classSimpleName: String): Importer<T, S> {
         var cps = ClasspathScanner("xyz.deverse.evendilo.model")
@@ -69,6 +79,32 @@ class ImporterBusinessDelegate(var importers: List<Importer<out Model, out Impor
         } catch (e: NoSuchElementException) {
             throw IllegalArgumentException("Cannot find an importer for class $importTag", e)
         }
+    }
+
+    fun modifyImportFilter(filter: ReadFilter, family: Family, destination: Destination): ReadFilter {
+        val firstSheet = filter.groups[0];
+        filter.groups.removeIf { group -> group != firstSheet }
+
+        var token = SecurityContextHolder.getContext().authentication as OAuth2AuthenticationToken
+        val id = ImportEntityKey.of(token.authorizedClientRegistrationId, family, destination, filter.filename)
+        val importEntity = ImportEntity(id, LocalDateTime.now().toEpochSecond(ZoneOffset.UTC))
+
+        importEntityRepository
+                .findById(id)
+                .ifPresent { existing ->
+                    filter.rawData[firstSheet]!!.values.removeIf {
+                        try {
+                            val firstCellValue = it.next()
+                            val cellDateTime = LocalDateTime.parse(firstCellValue, DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"))
+                            val cellTimestamp = cellDateTime.toEpochSecond(ZoneOffset.UTC)
+                            existing.timestamp > cellTimestamp
+                        } catch (e: Exception) {
+                            false
+                        }
+                    }
+                }
+        importEntityRepository.save(importEntity)
+        return filter;
     }
 
     private fun resolveImporterClassname(classSimpleName: String, vararg importTags: ImportTag): String {

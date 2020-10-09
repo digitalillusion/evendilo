@@ -1,6 +1,5 @@
 package xyz.deverse.evendilo.api.woocommerce
 
-import xyz.deverse.evendilo.config.support.LoggingRequestInterceptor
 import org.apache.http.impl.client.HttpClientBuilder
 import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.context.annotation.Scope
@@ -16,6 +15,7 @@ import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.client.exchange
 import xyz.deverse.evendilo.config.properties.AppConfigurationProperties
+import xyz.deverse.evendilo.config.support.LoggingRequestInterceptor
 import xyz.deverse.evendilo.functions.replaceList
 import xyz.deverse.evendilo.logger
 import xyz.deverse.evendilo.model.woocommerce.*
@@ -177,7 +177,7 @@ class WoocommerceApi(var appConfigProperties: AppConfigurationProperties, var re
                 .getOrPut(search)  {
                     logger.info("Searching product $search (sku=$sku)")
                     retryTemplate.execute<Array<Product>, Exception> { _ ->
-                        rest().getForObject("/wp-json/wc/v3/products?search={search}&type={type}&sku={sku}", Array<Product>::class.java, search, type, sku)
+                        rest().getForObject("/wp-json/wc/v3/products?search={search}&sku={sku}", Array<Product>::class.java, search, sku)
                     }
                 }
 

@@ -1,6 +1,5 @@
 package xyz.deverse.evendilo.api.ebay
 
-import xyz.deverse.evendilo.config.support.LoggingRequestInterceptor
 import org.apache.http.impl.client.HttpClientBuilder
 import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.context.annotation.Scope
@@ -19,6 +18,7 @@ import org.springframework.stereotype.Service
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestTemplate
 import xyz.deverse.evendilo.config.properties.AppConfigurationProperties
+import xyz.deverse.evendilo.config.support.LoggingRequestInterceptor
 import xyz.deverse.evendilo.logger
 import xyz.deverse.evendilo.model.ebay.EbayConstants
 import xyz.deverse.evendilo.model.ebay.InventoryLocation

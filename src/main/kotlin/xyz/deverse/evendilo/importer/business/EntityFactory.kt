@@ -3,7 +3,6 @@ package xyz.deverse.evendilo.importer.business
 import org.mapstruct.TargetType
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
-import xyz.deverse.evendilo.config.properties.AppConfigurationProperties
 import xyz.deverse.evendilo.config.properties.DestinationConfigurationProperties
 import xyz.deverse.evendilo.importer.standard.EvendiloCsvLine
 import xyz.deverse.evendilo.logger

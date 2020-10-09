@@ -23,5 +23,5 @@ sealed class Family(private val type: String) : ImportTag {
         }
     }
 
-    object Standard : Family("standard");
+    object Standard : Family("standard")
 }

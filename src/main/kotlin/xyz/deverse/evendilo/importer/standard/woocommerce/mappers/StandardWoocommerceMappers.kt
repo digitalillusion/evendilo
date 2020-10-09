@@ -9,8 +9,6 @@ import xyz.deverse.evendilo.importer.standard.woocommerce.StandardWoocommercePro
 import xyz.deverse.evendilo.model.ProductType
 import xyz.deverse.evendilo.model.woocommerce.*
 import xyz.deverse.importer.csv.CsvFileReader
-import java.text.DecimalFormat
-import java.text.NumberFormat
 import kotlin.math.roundToInt
 
 @Component

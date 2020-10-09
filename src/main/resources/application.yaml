@@ -1,16 +1,19 @@
-server:
-  ssl:
-    enabled: true
-    key-store: classpath:evendilo-localhost.keystore
-    key-store-type: jks
-    key-alias: evendilo-localhost
-    key-store-password: evendilo
-    key-password: evendilo
-  port: 8443
-
 spring:
   main:
     allow-bean-definition-overriding: true
+
+  datasource:
+    platform: postgres
+    driverClassName: org.postgresql.Driver
+    hikari:
+      connectionTimeout: 20000
+      maximumPoolSize: 5
+    url: jdbc:postgresql://ec2-52-17-53-249.eu-west-1.compute.amazonaws.com:5432/dde49fshaeuu7u?ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory
+    username: lhtkzlkpamayne
+    password: db097304c50546bb16a859bcdd5ce10bb2681d314efeb5c8b88a5bc9f5aabfce
+  jpa:
+    database: POSTGRESQL
+    show-sql: true
 
   security:
     oauth2:
@@ -64,6 +67,8 @@ variables:
   - identifier: "pierretappeti-amazon"
     importerConfig:
       attributes: ${EVENDILO_PIERRETAPPETI_IMPORTER_ATTRIBUTES}
+
+
 
 logging:
   level:
