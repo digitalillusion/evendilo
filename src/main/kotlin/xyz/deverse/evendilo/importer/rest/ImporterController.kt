@@ -227,7 +227,7 @@ class ImporterController(val importerProcessStatusCache: ImporterProcessStatusCa
                 }
             }
         })
-        pipelineFactory.runInTransaction(pipeline)
+        pipeline.run()
     }
 
     companion object {

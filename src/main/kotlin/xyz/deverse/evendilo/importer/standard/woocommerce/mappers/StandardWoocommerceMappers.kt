@@ -1,8 +1,10 @@
 package xyz.deverse.evendilo.importer.standard.woocommerce.mappers
 
+import org.apache.commons.text.StringEscapeUtils
 import org.mapstruct.*
 import org.springframework.stereotype.Component
 import xyz.deverse.evendilo.config.properties.AppConfigurationProperties
+import xyz.deverse.evendilo.importer.EncodeUtils
 import xyz.deverse.evendilo.importer.standard.EvendiloCsvLine
 import xyz.deverse.evendilo.importer.standard.WoocommerceEntityFactory
 import xyz.deverse.evendilo.importer.standard.woocommerce.StandardWoocommerceProductCsvLine
@@ -55,6 +57,11 @@ class WoocommerceProductMapperHelper {
             mutableListOf()
         }
     }
+
+    @Named("escapeHTML")
+    fun escapeHTML(html: String): String {
+        return StringEscapeUtils.escapeJava(EncodeUtils.htmlEntites(html));
+    }
 }
 
 @Mapper(componentModel = "spring",
@@ -80,8 +87,8 @@ interface StandardWoocommerceProductMapper : CsvFileReader.CsvImportMapper<Produ
     @Mappings(value = [
         Mapping(target = "id", ignore = true),
         Mapping(target = "type", expression = "java(ProductType.fromString(standardWoocommerceProductCsvLine.getType()))"),
-        Mapping(target = "description", expression = "java(org.apache.commons.text.StringEscapeUtils.escapeJava(standardWoocommerceProductCsvLine.getDescription()))"),
-        Mapping(target = "short_description", expression = "java(org.apache.commons.text.StringEscapeUtils.escapeJava(standardWoocommerceProductCsvLine.getShort_description()))"),
+        Mapping(target = "description", qualifiedByName = ["escapeHTML"]),
+        Mapping(target = "short_description", qualifiedByName = ["escapeHTML"]),
         Mapping(source = "imageUrls", target = "images", qualifiedByName = ["toImages"]),
         Mapping(target = "regular_price", source = "regular_price", qualifiedByName = ["toPrice"]),
         Mapping(source = "categoryNames", target = "categories", qualifiedByName = ["toCategories"]),

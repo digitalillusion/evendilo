@@ -90,7 +90,7 @@ class StandardWoocommerceProductImporter(var api: WoocommerceApi, var appConfigP
                 }
                 ProductType.Variable -> {
                     existing?.let {
-                        node.images = it.images
+                        node.images = it.images.distinctBy { image -> image.id }.toMutableList()
                         node.from(it)
                     }
                     node.attributes = validAttributes.mapIndexed { index, a ->

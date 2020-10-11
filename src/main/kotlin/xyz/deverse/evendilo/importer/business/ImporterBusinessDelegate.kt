@@ -87,24 +87,24 @@ class ImporterBusinessDelegate(var importers: List<Importer<out Model, out Impor
 
         var token = SecurityContextHolder.getContext().authentication as OAuth2AuthenticationToken
         val id = ImportEntityKey.of(token.authorizedClientRegistrationId, family, destination, filter.filename)
-        val importEntity = ImportEntity(id, filter.version, LocalDateTime.now().toEpochSecond(ZoneOffset.UTC))
-
-        importEntityRepository
-                .findById(id)
-                .ifPresent { existing ->
+        val existing = importEntityRepository.findById(id)
+        existing.ifPresent { e ->
                     filter.rawData[firstSheet]!!.values.removeIf {
                         try {
                             val firstCellValue = it.iterator().next().trim()
                             val cellDateTime = LocalDateTime.parse(firstCellValue, DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"))
                             val cellTimestamp = cellDateTime.toEpochSecond(ZoneOffset.UTC)
-                            existing.timestamp > cellTimestamp && existing.version >= filter.version
+                            e.timestamp > cellTimestamp && e.version >= filter.version
                         } catch (e: Exception) {
                             false
                         }
                     }
                 }
+        val timestamp = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+        val importEntity = existing.orElse(ImportEntity(id, filter.version, timestamp))
+        importEntity.timestamp = timestamp
         importEntityRepository.save(importEntity)
-        return filter;
+        return filter
     }
 
     private fun resolveImporterClassname(classSimpleName: String, vararg importTags: ImportTag): String {
