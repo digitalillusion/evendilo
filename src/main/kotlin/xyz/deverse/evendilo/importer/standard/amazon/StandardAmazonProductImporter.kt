@@ -13,13 +13,14 @@ data class StandardAmazonProductCsvLine(
         @CsvColumn(1) var sku: String = "",
         @CsvColumn(2) var name: String = "",
         @CsvColumn(3) var type: String = "",
-        @CsvColumn(4) var sale_price: String = "",
+        @CsvColumn(4) var taxed_price: String = "",
         @CsvColumn(5) var regular_price: String = "",
-        @CsvColumn(6) var short_description: String = "",
-        @CsvColumn(7) var description: String = "",
-        @CsvColumn(8) var categoryNames: String = "",
-        @CsvColumn(9) var tagNames: String = "",
-        @CsvColumn(10) var imageUrls: String = ""
+        @CsvColumn(6) var stock_quantity: String = "",
+        @CsvColumn(7) var short_description: String = "",
+        @CsvColumn(8) var description: String = "",
+        @CsvColumn(9) var categoryNames: String = "",
+        @CsvColumn(10) var tagNames: String = "",
+        @CsvColumn(11) var imageUrls: String = ""
 ) : EvendiloCsvLine<Product>()
 
 @Service

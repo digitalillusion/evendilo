@@ -12,12 +12,6 @@ import java.io.File
 import java.util.*
 import kotlin.reflect.full.isSubclassOf
 
-class WooCommerce {
-    companion object {
-        val LOCALE: Locale = Locale.ITALY;
-    }
-}
-
 data class Tag (
         override val id: Long?,
         val name: String
@@ -145,13 +139,14 @@ data class Product(
         var regular_price: String,
         var description: String,
         var short_description: String,
+        var stock_quantity: Int,
         var categories: MutableList<Category>,
         var tags: MutableList<Tag>,
         var images: MutableList<Image>,
         var attributes: MutableList<Attribute>,
         var variations: MutableList<ProductVariation>
 ) : Model {
-    constructor(): this(null, "", "", ProductType.Simple, "", "", "",
+    constructor(): this(null, "", "", ProductType.Simple, "", "", "", 0,
             mutableListOf<Category>(), mutableListOf<Tag>(), mutableListOf<Image>(), mutableListOf<Attribute>(),
             mutableListOf<ProductVariation>())
 
@@ -163,6 +158,10 @@ data class Product(
         }
         this.variations = product.variations
     }
+
+    val manage_stock: Boolean = true
+    val stock_status: String
+        get() = if (this.stock_quantity == 0) { "instock" } else { "outofstock" }
 }
 
 data class ProductVariation (

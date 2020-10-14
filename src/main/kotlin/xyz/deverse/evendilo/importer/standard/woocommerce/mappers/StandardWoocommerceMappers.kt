@@ -78,8 +78,7 @@ interface StandardWoocommerceProductMapper : CsvFileReader.CsvImportMapper<Produ
 
             product.attributes = mutableListOf()
             attributes.forEachIndexed { index, attribute ->
-                product.attributes.add(Attribute.Multiple(null, attribute, index, mutableListOf(AttributeTerm.Name(csvLineAttrs[index])))
-                )
+                product.attributes.add(Attribute.Multiple(null, attribute, index, mutableListOf(AttributeTerm.Name(csvLineAttrs[index]))))
             }
         }
     }
