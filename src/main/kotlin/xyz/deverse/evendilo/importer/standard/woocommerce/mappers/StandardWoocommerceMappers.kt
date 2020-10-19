@@ -11,6 +11,7 @@ import xyz.deverse.evendilo.importer.standard.woocommerce.StandardWoocommercePro
 import xyz.deverse.evendilo.model.ProductType
 import xyz.deverse.evendilo.model.woocommerce.*
 import xyz.deverse.importer.csv.CsvFileReader
+import javax.annotation.RegEx
 import kotlin.math.roundToInt
 
 @Component
@@ -40,7 +41,7 @@ class WoocommerceProductMapperHelper {
     @Named("toPrice")
     fun toPrice(price: String): String {
         return if (price.isNotEmpty()) {
-            val floatPrice = price.replace(",", ".").trim().toFloat()
+            val floatPrice = EncodeUtils.safeFloat(price)
             ((floatPrice * 100.0).roundToInt() / 100.0).toString()
         } else {
             ""
@@ -55,6 +56,15 @@ class WoocommerceProductMapperHelper {
                     .map { Tag(null, it.trim()) }.toMutableList()
         } else {
             mutableListOf()
+        }
+    }
+
+    @Named("toQuantity")
+    fun toQuantity(quantity: String): Int {
+        return if (quantity.isNotEmpty()) {
+            return EncodeUtils.safeFloat(quantity).toInt()
+        } else {
+            0
         }
     }
 
@@ -90,6 +100,7 @@ interface StandardWoocommerceProductMapper : CsvFileReader.CsvImportMapper<Produ
         Mapping(target = "short_description", qualifiedByName = ["escapeHTML"]),
         Mapping(source = "imageUrls", target = "images", qualifiedByName = ["toImages"]),
         Mapping(target = "regular_price", source = "regular_price", qualifiedByName = ["toPrice"]),
+        Mapping(target = "stock_quantity", source = "stock_quantity", qualifiedByName = ["toQuantity"]),
         Mapping(source = "categoryNames", target = "categories", qualifiedByName = ["toCategories"]),
         Mapping(source = "tagNames", target = "tags", qualifiedByName = ["toTags"])
     ])

@@ -259,6 +259,15 @@ class EncodeUtils {
                 '\u2666' to "&diams;"
         )
 
+        fun safeFloat(str: String): Float {
+            if (str.indexOf('.') > str.indexOf(',')) {
+               return str.trim().toFloat()
+            }
+            return str.replace(".", "")
+                    .replace(",", ".")
+                    .trim().toFloat()
+        }
+
         fun htmlEntites(source: String): String {
             var encoded_string: StringBuffer? = null
             val string_to_encode_array = source.toCharArray()

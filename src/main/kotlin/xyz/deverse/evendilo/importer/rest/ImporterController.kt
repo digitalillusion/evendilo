@@ -146,7 +146,7 @@ class ImporterController(val importerProcessStatusCache: ImporterProcessStatusCa
         logger.info(httpSession.id + " [POST uploadFileHandler] ")
         logger.debug(httpSession.id + " [POST uploadFileHandler] " + cacheId + "=" + newImporterProcessStatus.toString())
 
-        performImportFile(pipeline, strategy, importer, cacheId)
+        performImportFile(pipeline, strategy, importer, family, destination, cacheId)
         return retrieve(cacheId)
     }
 
@@ -186,7 +186,7 @@ class ImporterController(val importerProcessStatusCache: ImporterProcessStatusCa
         }
     }
 
-    fun <T : Model?> performImportFile(pipeline: Pipeline<T>, strategy: ImportStrategy<T, out ImportLine>, importer: Importer<T, out ImportLine>, cacheId: String) {
+    fun <T : Model?> performImportFile(pipeline: Pipeline<T>, strategy: ImportStrategy<T, out ImportLine>, importer: Importer<T, out ImportLine>, family: Family, destination: Destination, cacheId: String) {
         strategy.lineProcessors.add(0, Consumer { line: ImportLine ->
             val oldImporterProcessStatus = retrieve(cacheId)
             if (oldImporterProcessStatus != null) {
@@ -227,7 +227,12 @@ class ImporterController(val importerProcessStatusCache: ImporterProcessStatusCa
                 }
             }
         })
-        pipeline.run()
+        try {
+            pipeline.run()
+        } catch (e: Exception) {
+            logger.error("Error in the structure of the imported file ${strategy.file.originalFilename}:", e);
+            importerProcessAbort(family, destination);
+        }
     }
 
     companion object {

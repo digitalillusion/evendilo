@@ -120,6 +120,7 @@ class StandardWoocommerceProductImporter(var api: WoocommerceApi, var appConfigP
                             sku,
                             description,
                             node.regular_price,
+                            node.stock_quantity,
                             image,
                             variationAttributes
                     )

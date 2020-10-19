@@ -3,6 +3,7 @@ package xyz.deverse.evendilo.importer.standard.ebay.mappers;
 import org.mapstruct.*
 import org.springframework.stereotype.Component
 import xyz.deverse.evendilo.config.properties.AppConfigurationProperties
+import xyz.deverse.evendilo.importer.EncodeUtils
 import xyz.deverse.evendilo.importer.standard.EbayEntityFactory
 import xyz.deverse.evendilo.importer.standard.EvendiloCsvLine
 import xyz.deverse.evendilo.importer.standard.ebay.StandardEbayProductCsvLine
@@ -26,7 +27,7 @@ class EbayProductMapperHelper {
     @Named("toPrice")
     fun toPrice(price: String): Float {
         return if (price.isNotEmpty()) {
-            price.trim().replace(",", ".").toFloat()
+            EncodeUtils.safeFloat(price)
         } else {
             0f
         }

@@ -1,10 +1,7 @@
 package xyz.deverse.evendilo.model.woocommerce
 
-import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.*
 import com.fasterxml.jackson.annotation.JsonInclude.Include
-import com.fasterxml.jackson.annotation.JsonValue
 import xyz.deverse.evendilo.functions.replaceList
 import xyz.deverse.evendilo.model.Model
 import xyz.deverse.evendilo.model.ProductType
@@ -160,8 +157,8 @@ data class Product(
     }
 
     val manage_stock: Boolean = true
-    val stock_status: String
-        get() = if (this.stock_quantity == 0) { "instock" } else { "outofstock" }
+    val stock_status
+        get() = if (this.stock_quantity > 0) { "instock" } else { "outofstock" }
 }
 
 data class ProductVariation (
@@ -169,15 +166,20 @@ data class ProductVariation (
         var sku: String,
         var description: String,
         var regular_price: String,
+        var stock_quantity: Int,
         var image: Image,
         var attributes: MutableList<Attribute>
 ) : Model {
-    constructor() : this(null, "", "", "", Image(null), mutableListOf<Attribute>())
+    constructor() : this(null, "", "", "", 0, Image(null), mutableListOf<Attribute>())
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    constructor(id: Long) : this(id, "", "", "", Image(null), mutableListOf<Attribute>())
+    constructor(id: Long) : this(id, "", "", "", 0, Image(null), mutableListOf<Attribute>())
 
     fun from(productVariation: ProductVariation) {
         this.id = productVariation.id
     }
+
+    val manage_stock: Boolean = true
+    val stock_status
+        get() = if (this.stock_quantity > 0) { "instock" } else { "outofstock" }
 }
