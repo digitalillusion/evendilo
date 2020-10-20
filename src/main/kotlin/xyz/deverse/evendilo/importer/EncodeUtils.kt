@@ -261,7 +261,7 @@ class EncodeUtils {
 
         fun safeFloat(str: String): Float {
             if (str.indexOf('.') > str.indexOf(',')) {
-               return str.trim().toFloat()
+               return str.replace(",", "").trim().toFloat()
             }
             return str.replace(".", "")
                     .replace(",", ".")

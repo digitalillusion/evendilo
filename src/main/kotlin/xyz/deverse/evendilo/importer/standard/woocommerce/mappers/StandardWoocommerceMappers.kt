@@ -100,7 +100,7 @@ interface StandardWoocommerceProductMapper : CsvFileReader.CsvImportMapper<Produ
         Mapping(target = "short_description", qualifiedByName = ["escapeHTML"]),
         Mapping(source = "imageUrls", target = "images", qualifiedByName = ["toImages"]),
         Mapping(target = "regular_price", source = "regular_price", qualifiedByName = ["toPrice"]),
-        Mapping(target = "stock_quantity", source = "stock_quantity", qualifiedByName = ["toQuantity"]),
+        Mapping(target = "stock_quantity", qualifiedByName = ["toQuantity"]),
         Mapping(source = "categoryNames", target = "categories", qualifiedByName = ["toCategories"]),
         Mapping(source = "tagNames", target = "tags", qualifiedByName = ["toTags"])
     ])
