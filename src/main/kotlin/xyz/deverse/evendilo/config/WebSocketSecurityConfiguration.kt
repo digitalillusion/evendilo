@@ -23,7 +23,7 @@ import java.util.*
 @EnableScheduling
 @EnableWebSocketMessageBroker
 @Import(HttpSessionConfiguration::class)
-class WebSocketSecurityConfig(
+class WebSocketSecurityConfiguration(
         @param:Value("\${messaging.sockjs.url:https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.4.0/sockjs.js}") private val clientLibraryUrl: String,
         @param:Value("\${messaging.broker.endpoint:/messages}") private val messagingBrokerEndpoint: String,
         @param:Value("\${messaging.broker.prefix:/app}") private val messagingBrokerPrefix: String,
