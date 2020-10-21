@@ -300,6 +300,7 @@ class WoocommerceApi(var appConfigProperties: AppConfigurationProperties, var re
             rest().postForObject("/wp-json/wc/v3/products/{productId}/variations", variation, ProductVariation::class.java, product.id)!!
         }
         product.images.add(responseVariation.image)
+        product.images = product.images.distinctBy { image -> image.id }.toMutableList()
 
         cache().productCache[product.name]!![0].variations.replaceAll { v -> if (v.sku == responseVariation.sku) { responseVariation } else { v } }
         return responseVariation

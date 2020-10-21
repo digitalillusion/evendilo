@@ -153,6 +153,7 @@ data class Product(
             val imageName = "(.+?)(-\\d*)*\$".toRegex().find(File(it.src).nameWithoutExtension)?.groupValues!![1]
             product.images.find { image -> image.src.contains(imageName) } ?: it
         }
+        this.images = this.images.distinctBy { image -> image.id }.toMutableList()
         this.variations = product.variations
     }
 
