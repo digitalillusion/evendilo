@@ -72,6 +72,7 @@ variables:
       url:  ${EVENDILO_PIERRETAPPETI_EBAY_API_URL}
       importerConfig:
         attributes: ${EVENDILO_PIERRETAPPETI_IMPORTER_ATTRIBUTES}
+        imageUploadBaseUrl: ${EVENDILO_PIERRETAPPETI_URL}
       merchantLocationKey: ${EVENDILO_PIERRETAPPETI_EBAY_MERCHANT_LOCATION_KEY}
   amazon:
   - identifier: "pierretappeti-amazon"

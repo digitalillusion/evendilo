@@ -18,6 +18,7 @@ class EbayProductMapperHelper {
         return if (imageUrls.isNotEmpty()) {
             imageUrls.split(",")
                     .filter { it.isNotBlank() }
+                    .map { it.trim() }
                     .toMutableList()
         } else {
             mutableListOf()

@@ -20,10 +20,8 @@ import org.springframework.web.client.RestTemplate
 import xyz.deverse.evendilo.config.properties.AppConfigurationProperties
 import xyz.deverse.evendilo.config.support.LoggingRequestInterceptor
 import xyz.deverse.evendilo.logger
-import xyz.deverse.evendilo.model.ebay.EbayConstants
-import xyz.deverse.evendilo.model.ebay.InventoryLocation
-import xyz.deverse.evendilo.model.ebay.Offer
-import xyz.deverse.evendilo.model.ebay.Product
+import xyz.deverse.evendilo.model.ebay.*
+import xyz.deverse.evendilo.model.ebay.EbayConstants.Companion.MARKETPLACE_ID
 
 
 class EbayApiCache(
@@ -124,9 +122,17 @@ class EbayApi(
         }
     }
 
-    fun getCategorySuggestions(): String {
+    fun getCategorySuggestions(productInfo: ProductInfo): String {
         logger.info("Retrieving category suggestions")
-        return ""
+        var categoryTreeId = retryTemplate.execute<Map<*, *>, Exception> {
+            rest().getForObject("/commerce/taxonomy/v1/get_default_category_tree_id?marketplace_id=${MARKETPLACE_ID}", Map::class.java)
+        }["categoryTreeId"]!!;
+
+        var categories: List<Map<String, String>> = retryTemplate.execute<Map<*, *>, Exception> {
+            rest().getForObject("/commerce/taxonomy/v1/category_tree/${categoryTreeId}/get_category_suggestions?q=${productInfo.title}", Map::class.java)
+        }["categorySuggestions"] as List<Map<String, String>>
+        var categoryId: String = (categories[0]["category"] as Map<*, *>)["categoryId"] as String;
+        return categoryId
     }
 
 }
