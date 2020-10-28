@@ -20,6 +20,8 @@ import xyz.deverse.evendilo.functions.replaceList
 import xyz.deverse.evendilo.logger
 import xyz.deverse.evendilo.model.woocommerce.*
 
+const val MAX_PRODUCT_CACHE_SIZE : Int = 20
+
 
 fun convertAttributesToSingle(variation: ProductVariation) {
     replaceList(variation.attributes) { it.asSingle() }
@@ -33,14 +35,18 @@ fun convertAttributeTermsToNames(attributes: MutableList<Attribute>) {
 
 class WoocommerceApiCache(
         var restTemplate: RestTemplate,
-        var categoryCache: HashMap<String, Array<Category>?>,
-        var tagsCache: HashMap<String, Array<Tag>?>,
-        var productCache: HashMap<String, Array<Product>?>,
+        var categoryCache: LinkedHashMap<String, Array<Category>?>,
+        var tagsCache: LinkedHashMap<String, Array<Tag>?>,
+        var productCache: LinkedHashMap<String, Array<Product>?>,
         var attributeCache: MutableList<Attribute>,
-        var attributeTermCache: HashMap<String, Array<AttributeTerm>>
+        var attributeTermCache: LinkedHashMap<String, Array<AttributeTerm>>
 ) {
     constructor(restTemplate: RestTemplate) :
-            this(restTemplate, HashMap(), HashMap(), HashMap(), mutableListOf(), HashMap())
+            this(restTemplate, LinkedHashMap(), LinkedHashMap(), object : LinkedHashMap<String, Array<Product>?>() {
+                override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Array<Product>?>): Boolean {
+                    return this.size > MAX_PRODUCT_CACHE_SIZE
+                }
+            }, mutableListOf(), LinkedHashMap())
 
     fun clear() {
         categoryCache.clear()
