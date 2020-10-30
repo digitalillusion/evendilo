@@ -5,12 +5,15 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import xyz.deverse.evendilo.logger
 import xyz.deverse.evendilo.model.Model
 import xyz.deverse.importer.ActionType
+import xyz.deverse.importer.ImportMapper
+import xyz.deverse.importer.StrategyPostProcessor
 import xyz.deverse.importer.pipeline.Pipeline
 import java.util.*
+import java.util.function.Consumer
 import kotlin.collections.HashMap
 import kotlin.collections.HashSet
 
-abstract class PersistStage<T : Model>() : Pipeline.Stage {
+abstract class PersistStage<T : Model>() : Pipeline.Stage, StrategyPostProcessor<T> {
     private val logger = logger<PersistStage<T>>()
 
     enum class PersistActionType {

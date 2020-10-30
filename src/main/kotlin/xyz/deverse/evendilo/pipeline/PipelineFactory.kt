@@ -80,6 +80,7 @@ class PipelineFactory<T : Model> (
     private fun createStreamPersistPipeline(importer: Importer<T, ImportLine>, entityFactory: EntityFactory, strategy: ImportStrategy<T, ImportLine>): AbstractPipeline<T> {
         val importStage: ImportStage<T> = ImportStage(importer, strategy)
         val persistStage: PersistStage<T> = resolvePersistStageForType(importer.nodeType)
+        strategy.postProcessors.add(persistStage)
         return object : AbstractPipeline<T>(importStage, persistStage) {
             @Suppress("UNCHECKED_CAST")
             override fun setup() {

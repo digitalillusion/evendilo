@@ -47,13 +47,14 @@ class StandardEbayProductImporter(var api: EbayApi, var appConfigProperties: App
             node.product.aspects = node.product.aspects
                     .filter { entry -> entry.value.joinToString().isNotBlank() }
                     .toMutableMap()
+            node.offer.categoryId = api.getCategorySuggestions(node.product)
 
             when (node.type) {
                 ProductType.Simple -> {
-                    node.offer.categoryId = api.getCategorySuggestions(node.product)
                 }
                 ProductType.Variable -> {
-                    node.offer.categoryId = api.getCategorySuggestions(node.product)
+                }
+                ProductType.Variation -> {
                 }
             }
 
