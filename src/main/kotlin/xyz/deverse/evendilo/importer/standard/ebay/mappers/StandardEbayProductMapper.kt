@@ -44,6 +44,15 @@ class EbayProductMapperHelper {
             mutableListOf()
         }
     }
+
+    @Named("toQuantity")
+    fun toQuantity(quantity: String): Int {
+        return if (quantity.isNotEmpty()) {
+            return EncodeUtils.safeFloat(quantity).toInt()
+        } else {
+            0
+        }
+    }
 }
 
 @Mapper(componentModel = "spring",
@@ -67,7 +76,7 @@ interface StandardEbayProductMapper : CsvFileReader.CsvImportMapper<Product, Sta
     @Mappings(value = [
         Mapping(target = "id", ignore = true),
         Mapping(target = "type", expression = "java(ProductType.fromString(standardEbayProductCsvLine.getType()))"),
-        Mapping(target = "availability.shipToLocationAvailability.quantity", expression = "java(1)"),
+        Mapping(target = "availability.shipToLocationAvailability.quantity", source = "stock_quantity", qualifiedByName = ["toQuantity"]),
         Mapping(target = "condition", expression = "java(\"NEW\")"),
         Mapping(target = "product.title", source = "name"),
         Mapping(target = "product.description", expression = "java(org.apache.commons.text.StringEscapeUtils.escapeJava(standardEbayProductCsvLine.getDescription()))"),

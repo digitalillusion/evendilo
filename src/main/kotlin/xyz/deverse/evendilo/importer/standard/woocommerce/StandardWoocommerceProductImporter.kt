@@ -84,9 +84,11 @@ class StandardWoocommerceProductImporter(var api: WoocommerceApi, var appConfigP
 
             val existing = api.findProduct(node)
 
-            when (node.type) {
+            when (existing?.type ?: node.type) {
                 ProductType.Simple-> {
-                    existing?.let { node.from(it) }
+                    existing?.let {
+                        node.images = it.images
+                        node.from(it) }
                     node
                 }
                 ProductType.Variable -> {
@@ -94,22 +96,12 @@ class StandardWoocommerceProductImporter(var api: WoocommerceApi, var appConfigP
                         node.images = it.images
                         node.from(it)
                     }
-                    node.attributes = validAttributes.mapIndexed { index, a ->
-                        val existingTerms = node.attributes.find { it.name == a.name }?.options ?: mutableListOf()
-                        mergeDistinct(a.options, existingTerms)
-                        a.position = index
-                        a
-                    }.toMutableList()
+                    node.attributes = prepareAttributes(validAttributes, node)
                     node
                 }
                 ProductType.Variation -> {
                     val result = existing ?: node
-                    result.attributes = validAttributes.mapIndexed { index, a ->
-                        val existingTerms = result.attributes.find { it.name == a.name }?.options ?: mutableListOf()
-                        mergeDistinct(a.options, existingTerms)
-                        a.position = index
-                        a
-                    }.toMutableList()
+                    result.attributes = prepareAttributes(validAttributes, result)
 
                     val imageName = "(.+?)(-\\d*)*\$".toRegex().find(File(node.images[0].src).nameWithoutExtension)?.groupValues!![1]
                     val image = result.images.find { it.src.contains(imageName) } ?: node.images[0]
@@ -138,6 +130,15 @@ class StandardWoocommerceProductImporter(var api: WoocommerceApi, var appConfigP
             }
         }
 
+    }
+
+    private fun prepareAttributes(validAttributes: MutableList<Attribute>, result: Product): MutableList<Attribute> {
+        return validAttributes.mapIndexed { index, a ->
+            val existingTerms = result.attributes.find { it.name == a.name }?.options ?: mutableListOf()
+            mergeDistinct(a.options, existingTerms)
+            a.position = index
+            a
+        }.toMutableList()
     }
 
 }

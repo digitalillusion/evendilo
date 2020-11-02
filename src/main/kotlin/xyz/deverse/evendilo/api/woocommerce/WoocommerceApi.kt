@@ -62,7 +62,7 @@ class WoocommerceApi(var appConfigProperties: AppConfigurationProperties, var re
         return caches.getOrPut(token.authorizedClientRegistrationId) {
             val factory = HttpComponentsClientHttpRequestFactory(HttpClientBuilder.create().build())
             val config = appConfigProperties.woocommerceConfig()
-            val credentials = config.credentials;
+            val credentials = config.credentials
             logger.info("Instantiated REST client for ${config.identifier}")
             var restTemplate = restTemplateBuilder
                     .rootUri(config.url)

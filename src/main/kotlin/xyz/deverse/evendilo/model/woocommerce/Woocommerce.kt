@@ -3,34 +3,45 @@ package xyz.deverse.evendilo.model.woocommerce
 import com.fasterxml.jackson.annotation.*
 import com.fasterxml.jackson.annotation.JsonInclude.Include
 import xyz.deverse.evendilo.functions.replaceList
+import xyz.deverse.evendilo.model.Destination
+import xyz.deverse.evendilo.model.Family
 import xyz.deverse.evendilo.model.Model
 import xyz.deverse.evendilo.model.ProductType
 import java.io.File
-import java.util.*
 import kotlin.reflect.full.isSubclassOf
+
+interface WoocommerceModel : Model {
+    @get:JsonIgnore
+    override val family: Family
+        get() = Family.Standard
+
+    @get:JsonIgnore
+    override val destination: Destination
+        get() = Destination.Woocommerce
+}
 
 data class Tag (
         override val id: Long?,
         val name: String
-) : Model
+) : WoocommerceModel
 
 data class Category (
     override val id: Long?,
     val name: String
-) : Model
+) : WoocommerceModel
 
 @JsonInclude(Include.NON_NULL)
 data class Image (
     override val id: Long?,
     var src: String = ""
-) : Model
+) : WoocommerceModel
 
 sealed class Attribute (
         override val id: Long?,
         open var name: String = "",
         open var position: Int = 0,
         open var options: MutableList<AttributeTerm> = mutableListOf()
-): Model {
+): WoocommerceModel {
 
     fun asSingle() : Single {
         return Single(this.id, this.name, this.options[0])
@@ -84,7 +95,7 @@ sealed class Attribute (
 sealed class AttributeTerm (
         override val id: Long?,
         var name: String
-): Model {
+): WoocommerceModel {
     fun asName() : Name {
         return Name(name)
     }
@@ -142,13 +153,14 @@ data class Product(
         var images: MutableList<Image>,
         var attributes: MutableList<Attribute>,
         var variations: MutableList<ProductVariation>
-) : Model {
+) : WoocommerceModel {
     constructor(): this(null, "", "", ProductType.Simple, "", "", "", 0,
             mutableListOf<Category>(), mutableListOf<Tag>(), mutableListOf<Image>(), mutableListOf<Attribute>(),
             mutableListOf<ProductVariation>())
 
     fun from(product: Product) {
         this.id = product.id
+        this.type = product.type
         replaceList(this.images) {
             val imageName = "(.+?)(-\\d*)*\$".toRegex().find(File(it.src).nameWithoutExtension)?.groupValues!![1]
             product.images.find { image -> image.src.contains(imageName) } ?: it
@@ -170,7 +182,7 @@ data class ProductVariation (
         var stock_quantity: Int,
         var image: Image,
         var attributes: MutableList<Attribute>
-) : Model {
+) : WoocommerceModel {
     constructor() : this(null, "", "", "", 0, Image(null), mutableListOf<Attribute>())
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)

@@ -70,7 +70,7 @@ class WoocommerceProductMapperHelper {
 
     @Named("escapeHTML")
     fun escapeHTML(html: String): String {
-        return StringEscapeUtils.escapeJava(EncodeUtils.htmlEntites(html));
+        return StringEscapeUtils.escapeJava(EncodeUtils.htmlEntites(html))
     }
 }
 

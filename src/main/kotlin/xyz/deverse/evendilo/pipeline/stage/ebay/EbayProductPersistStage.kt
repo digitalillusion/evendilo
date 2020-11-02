@@ -5,7 +5,6 @@ import xyz.deverse.evendilo.api.ebay.EbayApi
 import xyz.deverse.evendilo.model.ProductType
 import xyz.deverse.evendilo.model.ebay.Product
 import xyz.deverse.evendilo.pipeline.stage.PersistStage
-import xyz.deverse.importer.ImportMapper
 
 @Component
 class EbayProductPersistStage(var api: EbayApi) : PersistStage<Product>() {
@@ -20,13 +19,16 @@ class EbayProductPersistStage(var api: EbayApi) : PersistStage<Product>() {
 
         when (target.type) {
             ProductType.Simple -> {
-                api.createProduct(target)
-                api.createOffer(target)
+                api.createOrUpdateProduct(target)
+                val offer = api.createOrUpdateOffer(target)
+                api.publishOffer(offer);
             }
-            ProductType.Variation,
+            ProductType.Variation -> {
+                api.createOrUpdateProduct(target)
+                api.createOrUpdateOffer(target)
+            }
             ProductType.External,
             ProductType.Variable -> {
-                api.createProduct(target)
             }
         }
 
@@ -37,7 +39,13 @@ class EbayProductPersistStage(var api: EbayApi) : PersistStage<Product>() {
         return target
     }
 
-    override fun postProcess(lines: Collection<Product>) {
-
+    override fun postProcess(targets: Collection<Product>) {
+        targets.filter { it.type == ProductType.Variable }.forEach { variableProduct ->
+            val skus = targets
+                    .filter { it.type == ProductType.Variation && it.sku.startsWith(variableProduct.sku) }
+                    .map { it.sku }
+            val group = api.createGroup(variableProduct, skus)
+            api.publishOfferForGroup(variableProduct, group)
+        }
     }
 }

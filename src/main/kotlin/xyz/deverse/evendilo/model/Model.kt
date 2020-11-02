@@ -8,9 +8,7 @@ interface Model {
 
     @get:JsonIgnore
     val family: Family
-        get() = Family.Standard
 
     @get:JsonIgnore
     val destination: Destination
-        get() = Destination.Woocommerce
 }

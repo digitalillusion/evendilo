@@ -13,7 +13,7 @@ import java.util.function.Consumer
 import kotlin.collections.HashMap
 import kotlin.collections.HashSet
 
-abstract class PersistStage<T : Model>() : Pipeline.Stage, StrategyPostProcessor<T> {
+abstract class PersistStage<T : Model> : Pipeline.Stage, StrategyPostProcessor<T> {
     private val logger = logger<PersistStage<T>>()
 
     enum class PersistActionType {

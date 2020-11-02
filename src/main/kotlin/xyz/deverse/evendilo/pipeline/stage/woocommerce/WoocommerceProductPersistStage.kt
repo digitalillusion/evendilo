@@ -16,7 +16,7 @@ class WoocommerceProductPersistStage(var api: WoocommerceApi) : PersistStage<Pro
     }
 
     private fun save(target: Product): Product {
-        var created = api.createProduct(target);
+        var created = api.createProduct(target)
         target.id = created.id
         target.variations.replaceAll { api.createProductVariation(target, it) }
         return target
@@ -41,7 +41,7 @@ class WoocommerceProductPersistStage(var api: WoocommerceApi) : PersistStage<Pro
             variation
         }
         if (variationCreated) {
-            api.updateProduct(target);
+            api.updateProduct(target)
         }
         return target
     }

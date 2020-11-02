@@ -1,6 +1,9 @@
 package xyz.deverse.evendilo.model.ebay
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import xyz.deverse.evendilo.api.ebay.EbayApi
+import xyz.deverse.evendilo.model.Destination
+import xyz.deverse.evendilo.model.Family
 import xyz.deverse.evendilo.model.Model
 import xyz.deverse.evendilo.model.ProductType
 
@@ -10,6 +13,16 @@ class EbayConstants {
         const val CONTENT_LANGUAGE: String = "it-IT";
         const val MARKETPLACE_ID: String = "EBAY_IT"
     }
+}
+
+interface EbayModel : Model {
+    @get:JsonIgnore
+    override val family
+        get() = Family.Standard
+
+    @get:JsonIgnore
+    override val destination
+        get() = Destination.Ebay
 }
 
 data class Response (
@@ -47,16 +60,55 @@ data class ProductInfo (
     var imageUrls: MutableList<String> = mutableListOf()
 )
 
+data class Variation (
+    val name: String,
+    val values: MutableList<String>
+)
+
+data class VariationContainer(
+    var specifications: MutableSet<Variation> = mutableSetOf()
+) {
+    constructor(aspects: MutableMap<String, MutableList<String>>) : this () {
+        aspects.forEach { aspect ->  specifications.add(Variation(aspect.key, aspect.value)) }
+    }
+}
+
+data class Group (
+    override val id: Long?,
+    var title: String = "",
+    var sku: String = "",
+    var description: String = "",
+    var aspects: MutableMap<String, MutableList<String>> = mutableMapOf(),
+    var imageUrls: MutableList<String> = mutableListOf(),
+    var variantSKUs: MutableList<String> = mutableListOf(),
+    var variesBy: VariationContainer = VariationContainer()
+) : EbayModel {
+    constructor(product: Product, variantSKUs: MutableList<String>) :
+            this(null, product.product.title, product.sku, product.product.description, product.product.aspects, product.product.imageUrls, variantSKUs) {
+        variesBy =  VariationContainer(aspects)
+    }
+
+    val inventoryItemGroupKey: String?
+        get() = this.sku
+}
+
 data class Product (
-        override var id: Long?,
-        var type: ProductType,
+        var type: ProductType = ProductType.Simple,
         var sku: String = "",
         var availability: Availability = Availability(),
         var condition: String = "",
         var product: ProductInfo = ProductInfo(),
         var offer: Offer = Offer()
-) : Model {
-    constructor() : this(null, ProductType.Simple)
+) : EbayModel {
+    fun from(product: Product) {
+        this.type = product.type
+        this.offer.from(product.offer)
+    }
+
+    private var _hashcodeId: Long? = sku.hashCode().toLong()
+    override var id: Long?
+        get() = _hashcodeId
+        set(value) { _hashcodeId = value }
 }
 
 data class Amount (
@@ -78,7 +130,12 @@ data class Offer (
         var pricingSummary: PricingSummary = PricingSummary(),
         var merchantLocationKey: String = EbayApi.EVENDILO_INVENTORY_LOCATION,
         var storeCategoryNames: MutableList<String> = mutableListOf()
-) : Model {
+) : EbayModel {
+    fun from(offer: Offer) {
+        this.id = offer.id
+        this.sku = offer.sku;
+    }
+
     constructor() : this(null)
 
     var offerId: Long?

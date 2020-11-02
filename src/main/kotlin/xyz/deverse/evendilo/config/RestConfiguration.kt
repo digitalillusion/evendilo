@@ -1,4 +1,4 @@
-package xyz.deverse.evendilo.config;
+package xyz.deverse.evendilo.config
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -33,7 +33,7 @@ class RestConfiguration(var appConfigProperties: AppConfigurationProperties) : W
         configurer.
         favorParameter(false).
         ignoreAcceptHeader(true).
-        defaultContentType(MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON);
+        defaultContentType(MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON)
     }
 
 	@Bean

@@ -85,6 +85,7 @@ class PipelineFactory<T : Model> (
             @Suppress("UNCHECKED_CAST")
             override fun setup() {
                 strategy.lineProcessors.add(Consumer { line : ImportLine -> persistLine(line.nodes as MutableCollection<T>, line.excludedIds, persistStage, line.actionType, line.saveDepth) })
+                strategy.postProcessors.add(persistStage)
             }
 
             override fun run() {
@@ -113,6 +114,7 @@ class PipelineFactory<T : Model> (
                 strategy.lineProcessors.add(Consumer { line: ImportLine ->
                     persistLine(line.nodes as MutableCollection<T>, line.excludedIds, persistStage, line.actionType, line.saveDepth)
                 })
+                strategy.postProcessors.add(persistStage)
 
                 importStage.run()
             }

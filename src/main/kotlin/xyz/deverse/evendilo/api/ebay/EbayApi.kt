@@ -26,13 +26,15 @@ import xyz.deverse.evendilo.model.ebay.EbayConstants.Companion.MARKETPLACE_ID
 
 class EbayApiCache(
         var restTemplate: RestTemplate,
-        var inventoryLocationCache: HashMap<String, InventoryLocation?>
+        var inventoryLocationCache: HashMap<String, InventoryLocation?>,
+        var suggestedCategoryCache: HashMap<String, String>
 ) {
     constructor(restTemplate: RestTemplate) :
-            this(restTemplate, HashMap())
+            this(restTemplate, HashMap(), HashMap())
 
     fun clear() {
         inventoryLocationCache.clear()
+        suggestedCategoryCache.clear()
     }
 }
 
@@ -102,37 +104,93 @@ class EbayApi(
         })!!
     }
 
-    fun createProduct(product: Product)  {
-        logger.info("Creating product ${product.product.title}")
+    fun createOrUpdateProduct(product: Product)  {
+        logger.info("Creating product ${product.sku} (${product.type})")
         retryTemplate.execute<ResponseEntity<Product>, Exception> {
             var requestEntity = HttpEntity(product)
             rest().exchange("/sell/inventory/v1/inventory_item/${product.sku}", HttpMethod.PUT, requestEntity, Product::class.java)
         }
     }
 
-    fun createOffer(product: Product) {
-        logger.info("Creating offer for product ${product.product.title}")
+    fun createOrUpdateOffer(product: Product): Offer {
+        logger.info("Creating offer for product ${product.sku}")
         var offer= product.offer
         offer = retryTemplate.execute<Offer, Exception> {
             rest().postForObject("/sell/inventory/v1/offer", offer, Offer::class.java)
         }
+        product.offer = offer
+        return offer
+    }
 
+    fun publishOffer(offer: Offer) {
         retryTemplate.execute<Void, Exception> {
             rest().postForObject("/sell/inventory/v1/offer/${offer.id}/publish", null, Void::class.java)
         }
     }
 
     fun getCategorySuggestions(productInfo: ProductInfo): String {
-        logger.info("Retrieving category suggestions")
-        var categoryTreeId = retryTemplate.execute<Map<*, *>, Exception> {
-            rest().getForObject("/commerce/taxonomy/v1/get_default_category_tree_id?marketplace_id=${MARKETPLACE_ID}", Map::class.java)
-        }["categoryTreeId"]!!;
+        logger.info("Retrieving category suggestion")
+        return cache().suggestedCategoryCache.getOrPut(productInfo.title) {
+            val categoryTreeId = retryTemplate.execute<Map<*, *>, Exception> {
+                rest().getForObject("/commerce/taxonomy/v1/get_default_category_tree_id?marketplace_id=${MARKETPLACE_ID}", Map::class.java)
+            }["categoryTreeId"]!!;
 
-        var categories: List<Map<String, String>> = retryTemplate.execute<Map<*, *>, Exception> {
-            rest().getForObject("/commerce/taxonomy/v1/category_tree/${categoryTreeId}/get_category_suggestions?q=${productInfo.title}", Map::class.java)
-        }["categorySuggestions"] as List<Map<String, String>>
-        var categoryId: String = (categories[0]["category"] as Map<*, *>)["categoryId"] as String;
-        return categoryId
+            val categories: List<Map<String, String>> = retryTemplate.execute<Map<*, *>, Exception> {
+                rest().getForObject("/commerce/taxonomy/v1/category_tree/${categoryTreeId}/get_category_suggestions?q=${productInfo.title}", Map::class.java)
+            }["categorySuggestions"] as List<Map<String, String>>
+            val categoryId: String = (categories[0]["category"] as Map<*, *>)["categoryId"] as String
+            categoryId
+        }
+    }
+
+    fun findProduct(product: Product): Product? {
+        try {
+            var responseProduct = retryTemplate.execute<Product?, Exception> {
+                rest().getForObject("/sell/inventory/v1/inventory_item/${product.sku}", Product::class.java)
+            }
+            responseProduct?.type = product.type
+
+            findOffer(product)?.let { responseProduct?.offer?.from(it) }
+            return responseProduct
+        } catch (e: HttpClientErrorException) {
+            product.id = null
+            if (e.statusCode == HttpStatus.NOT_FOUND) {
+                return null
+            }
+            throw e
+        }
+    }
+
+    private fun findOffer(product: Product): Offer? {
+        try {
+            return retryTemplate.execute<Offer?, Exception> {
+                rest().getForObject("/sell/inventory/v1/offer?sku=${product.sku}", Offer::class.java)
+            }
+        } catch (e: HttpClientErrorException) {
+            if (e.statusCode == HttpStatus.NOT_FOUND) {
+                return null
+            }
+            throw e
+        }
+    }
+
+    fun createGroup(product: Product, skus: List<String>): Group {
+        val group = Group(product, skus.toMutableList())
+        retryTemplate.execute<ResponseEntity<Group>, Exception> {
+            val requestEntity = HttpEntity(group)
+            rest().exchange("/sell/inventory/v1/inventory_item_group/${product.sku}", HttpMethod.PUT, requestEntity, Group::class.java)
+        }
+        return group
+    }
+
+    fun publishOfferForGroup(product: Product, group: Group) {
+        retryTemplate.execute<Map<*, *>, Exception> {
+            val request = mapOf(
+                "inventoryItemGroupKey" to group.inventoryItemGroupKey!!,
+                "marketplaceId" to product.offer.marketplaceId
+            )
+            rest().postForObject("/sell/inventory/v1/offer/publish_by_inventory_item_group", request, Map::class.java)
+        }
     }
 
 }
