@@ -4,11 +4,13 @@ import org.mapstruct.TargetType
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import xyz.deverse.evendilo.config.properties.DestinationConfigurationProperties
+import xyz.deverse.evendilo.functions.getAuthentication
 import xyz.deverse.evendilo.importer.standard.EvendiloCsvLine
 import xyz.deverse.evendilo.logger
 import xyz.deverse.evendilo.model.Destination
 import xyz.deverse.evendilo.model.Model
 import xyz.deverse.importer.generic.ImportTag
+import java.lang.IllegalStateException
 import kotlin.reflect.full.createInstance
 
 /**
@@ -47,7 +49,7 @@ abstract class EntityFactory protected constructor(var destination: Destination)
 
     fun <T: Model> getAttributesMapping(destinationsConfigProperties: List<DestinationConfigurationProperties>, csvLine: EvendiloCsvLine<T>): Pair<MutableList<String>, Array<String>> {
         val attributes = mutableListOf<String>()
-        var token = SecurityContextHolder.getContext().authentication as OAuth2AuthenticationToken
+        val token = getAuthentication()
         for (config in destinationsConfigProperties) {
             val importerConfig = config.importerConfig;
             if (token.authorizedClientRegistrationId == config.identifier) {

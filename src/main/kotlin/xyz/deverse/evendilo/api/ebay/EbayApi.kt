@@ -19,11 +19,13 @@ import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestTemplate
 import xyz.deverse.evendilo.config.properties.AppConfigurationProperties
 import xyz.deverse.evendilo.config.support.LoggingRequestInterceptor
+import xyz.deverse.evendilo.functions.getAuthentication
 import xyz.deverse.evendilo.logger
 import xyz.deverse.evendilo.model.ebay.EbayConstants
 import xyz.deverse.evendilo.model.ebay.InventoryLocation
 import xyz.deverse.evendilo.model.ebay.Offer
 import xyz.deverse.evendilo.model.ebay.Product
+import java.lang.IllegalStateException
 
 
 class EbayApiCache(
@@ -55,7 +57,7 @@ class EbayApi(
 
 
     private fun cache() : EbayApiCache {
-        var token = SecurityContextHolder.getContext().authentication as OAuth2AuthenticationToken
+        val token = getAuthentication()
         return caches.getOrPut(token.authorizedClientRegistrationId) {
             val factory = HttpComponentsClientHttpRequestFactory(HttpClientBuilder.create().build())
             val config = appConfigProperties.ebayConfig();
