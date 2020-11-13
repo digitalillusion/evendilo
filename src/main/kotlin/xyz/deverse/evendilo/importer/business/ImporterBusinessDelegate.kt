@@ -5,6 +5,7 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.stereotype.Service
 import xyz.deverse.evendilo.entity.ImportEntity
 import xyz.deverse.evendilo.entity.ImportEntityKey
+import xyz.deverse.evendilo.functions.getAuthentication
 import xyz.deverse.evendilo.model.Destination
 import xyz.deverse.evendilo.model.Family
 import xyz.deverse.evendilo.model.Model
@@ -13,6 +14,7 @@ import xyz.deverse.importer.ImportLine
 import xyz.deverse.importer.Importer
 import xyz.deverse.importer.ReadFilter
 import xyz.deverse.importer.generic.ImportTag
+import java.lang.IllegalStateException
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -85,7 +87,7 @@ class ImporterBusinessDelegate(var importers: List<Importer<out Model, out Impor
         val firstSheet = filter.groups[0];
         filter.groups.removeIf { group -> group != firstSheet }
 
-        var token = SecurityContextHolder.getContext().authentication as OAuth2AuthenticationToken
+        val token = getAuthentication()
         val id = ImportEntityKey.of(token.authorizedClientRegistrationId, family, destination, filter.filename)
         val existing = importEntityRepository.findById(id)
         existing.ifPresent { e ->

@@ -4,6 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
+import xyz.deverse.evendilo.functions.getAuthentication
 import xyz.deverse.evendilo.logger
 import javax.annotation.PostConstruct
 
@@ -43,7 +44,7 @@ data class AppConfigurationProperties(
     val logger = logger<AppConfigurationProperties>()
 
     fun woocommerceConfig() : WoocommerceConfigurationProperties {
-        var token = SecurityContextHolder.getContext().authentication as OAuth2AuthenticationToken
+        val token = getAuthentication()
         for (config in woocommerce) {
             if (token.authorizedClientRegistrationId == config.identifier) {
                 return config
@@ -53,7 +54,7 @@ data class AppConfigurationProperties(
     }
 
     fun ebayConfig() : EbayConfigurationProperties {
-        var token = SecurityContextHolder.getContext().authentication as OAuth2AuthenticationToken
+        val token = getAuthentication()
         for (config in ebay) {
             val importerConfig = config.importerConfig;
             if (token.authorizedClientRegistrationId == config.identifier) {

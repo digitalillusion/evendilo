@@ -1,5 +1,6 @@
 package xyz.deverse.evendilo.importer.standard.woocommerce
 
+import org.apache.commons.lang3.StringUtils
 import org.springframework.stereotype.Service
 import xyz.deverse.evendilo.api.woocommerce.WoocommerceApi
 import xyz.deverse.evendilo.config.properties.AppConfigurationProperties
@@ -103,7 +104,7 @@ class StandardWoocommerceProductImporter(var api: WoocommerceApi, var appConfigP
                     val result = existing ?: node
                     result.attributes = prepareAttributes(validAttributes, result)
 
-                    val imageName = "(.+?)(-\\d*)*\$".toRegex().find(File(node.images[0].src).nameWithoutExtension)?.groupValues!![1]
+                    val imageName = getImageName(node)
                     val image = result.images.find { it.src.contains(imageName) } ?: node.images[0]
                     val sku = node.sku + "_" + variationAttributes.map { a: Attribute -> a.asSingle().option?.asName()?.name }.joinToString("_").replace("\\s+".toRegex(), "-")
                     val description = if (node != result) { "" } else { node.description }
@@ -131,6 +132,9 @@ class StandardWoocommerceProductImporter(var api: WoocommerceApi, var appConfigP
         }
 
     }
+
+    private fun getImageName(node: Product) =
+            StringUtils.stripAccents("(.+?)(-\\d*)*\$".toRegex().find(File(node.images[0].src).nameWithoutExtension)?.groupValues!![1])
 
     private fun prepareAttributes(validAttributes: MutableList<Attribute>, result: Product): MutableList<Attribute> {
         return validAttributes.mapIndexed { index, a ->

@@ -16,6 +16,7 @@ import org.springframework.web.client.RestTemplate
 import org.springframework.web.client.exchange
 import xyz.deverse.evendilo.config.properties.AppConfigurationProperties
 import xyz.deverse.evendilo.config.support.LoggingRequestInterceptor
+import xyz.deverse.evendilo.functions.getAuthentication
 import xyz.deverse.evendilo.functions.replaceList
 import xyz.deverse.evendilo.logger
 import xyz.deverse.evendilo.model.woocommerce.*
@@ -58,7 +59,7 @@ class WoocommerceApi(var appConfigProperties: AppConfigurationProperties, var re
     var caches = HashMap<String, WoocommerceApiCache>()
 
     private fun cache() : WoocommerceApiCache {
-        var token = SecurityContextHolder.getContext().authentication as OAuth2AuthenticationToken
+        val token = getAuthentication()
         return caches.getOrPut(token.authorizedClientRegistrationId) {
             val factory = HttpComponentsClientHttpRequestFactory(HttpClientBuilder.create().build())
             val config = appConfigProperties.woocommerceConfig()

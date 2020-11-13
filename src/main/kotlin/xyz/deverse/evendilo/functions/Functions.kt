@@ -1,5 +1,9 @@
 package xyz.deverse.evendilo.functions
 
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
+import java.lang.IllegalStateException
+
 
 inline fun<T> replaceList(list: MutableList<T>, replacer: (T) -> T) {
     val tempList = mutableListOf<T>()
@@ -23,4 +27,9 @@ fun<T> mergeDistinct(destination: MutableList<T>, list: MutableList<T>) {
     merged.addAll(list)
     destination.clear()
     merged.forEach { destination.add(it) }
+}
+
+fun getAuthentication(): OAuth2AuthenticationToken {
+    val authentication = SecurityContextHolder.getContext().authentication ?: throw IllegalStateException("Authentication is not present in security context")
+    return authentication as OAuth2AuthenticationToken
 }
