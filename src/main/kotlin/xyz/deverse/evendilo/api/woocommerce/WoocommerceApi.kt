@@ -212,6 +212,9 @@ class WoocommerceApi(var appConfigProperties: AppConfigurationProperties, var re
     }
 
     fun findAttribute(attribute: Attribute) : Attribute? {
+        if (attribute.name.isBlank() || attribute.asSingle().option?.asName()?.name?.isBlank() != false) {
+            return null
+        }
         if (cache().attributeCache.isEmpty() || !cache().attributeCache.any() { it.name == attribute.name }) {
             cache().attributeCache.clear()
             logger.info("Searching attributes")
