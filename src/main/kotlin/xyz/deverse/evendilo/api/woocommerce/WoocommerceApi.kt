@@ -121,14 +121,14 @@ class WoocommerceApi(var appConfigProperties: AppConfigurationProperties, var re
         return if (tags.isNotEmpty()) tags[0] else null
     }
 
-    fun findCategoriesByName(search: String, exact: Boolean) : List<Category> {
+    fun findCategoriesByName(search: String) : List<Category> {
         val categories = cache().categoryCache
                 .getOrPut(search)  {
-                    logger.info("Searching category $search (exact=$exact)")
+                    logger.info("Searching categories $search")
                     var categories = mutableListOf<Category>()
                     var page = 1
                     do {
-                        val response = retryTemplate.execute<Array<Category>, Exception> { 
+                        val response = retryTemplate.execute<Array<Category>, Exception> {
                             rest().getForObject("/wp-json/wc/v3/products/categories?search={search}&per_page=100&page={page}", Array<Category>::class.java, search, page)!!
                         }
                         response.forEach { categories.add(it) }
@@ -137,17 +137,12 @@ class WoocommerceApi(var appConfigProperties: AppConfigurationProperties, var re
                     categories.toTypedArray()
                 }
 
-        if (categories == null || !exact) {
-            return categories?.asList() ?: listOf()
-        }
-
-        val exactMatch = categories.find { it.name == search }
-        return if (exactMatch != null) { listOf(exactMatch) } else { listOf() }
+        return categories?.asList() ?: listOf()
     }
 
     fun findCategory(search: Category?) : Category? {
-        val categories = findCategoriesByName(search?.name ?: "", true)
-        return if (categories.isNotEmpty()) categories[0] else null
+        val categories = findCategoriesByName("")
+        return if (categories.isNotEmpty()) categories.find { it.name == search?.name ?: true } else null
     }
 
     fun createProduct(product: Product) : Product {
