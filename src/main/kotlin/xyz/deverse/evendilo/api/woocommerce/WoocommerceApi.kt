@@ -179,14 +179,17 @@ class WoocommerceApi(var appConfigProperties: AppConfigurationProperties, var re
         val products = cache().productCache
                 .getOrPut(search)  {
                     logger.info("Searching product $search (sku=$sku)")
-                    retryTemplate.execute<Array<Product>, Exception> { 
-                        rest().getForObject("/wp-json/wc/v3/products?search={search}&sku={sku}", Array<Product>::class.java, search, sku)
+                    retryTemplate.execute<Array<Product>, Exception> {
+                        rest().getForObject("/wp-json/wc/v3/products?sku={sku}", Array<Product>::class.java, sku)
                     }
                 }
 
         if (products == null || products.isEmpty()) {
             return null
         } else if (products.size == 1) {
+            if (products[0].name != search) {
+                logger.warn("Renaming product ${products[0].name} to $search (sku=$sku)")
+            }
             return products[0]
         }
         throw IllegalStateException("Obtained a count of ${products.size} products for name=${product.name}: ${products.map { it.id }.joinToString(", ")}")
