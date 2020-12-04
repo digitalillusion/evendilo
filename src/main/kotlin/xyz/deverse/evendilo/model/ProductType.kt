@@ -5,7 +5,7 @@ import xyz.deverse.evendilo.importer.ErrorCode
 import xyz.deverse.evendilo.importer.ImportLineException
 
 enum class ProductType {
-    Simple, Grouped, External, Variable, Variation;
+    Simple, Variable, Variation;
 
     @JsonValue
     override fun toString(): String {

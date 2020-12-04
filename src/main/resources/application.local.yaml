@@ -1,0 +1,92 @@
+profile:
+  server:
+    ssl:
+      enabled: true
+      key-store: classpath:evendilo-localhost.keystore
+      key-store-type: jks
+      key-alias: evendilo-localhost
+      key-store-password: evendilo
+      key-password: evendilo
+    port: 8443
+
+  spring:
+    profiles: local
+    main:
+      allow-bean-definition-overriding: true
+
+    datasource:
+      platform: postgres
+      driverClassName: org.postgresql.Driver
+      hikari:
+        connectionTimeout: 20000
+        maximumPoolSize: 5
+      url: jdbc:postgresql://172.21.0.2:5432/evendilo
+      username: evendilo
+      password: evendilo
+    jpa:
+      database: POSTGRESQL
+      show-sql: true
+      hibernate:
+        ddl-auto: create
+
+    security:
+      oauth2:
+        client:
+          registration:
+            pierretappeti-woocommerce:
+              provider: pierretappeti-woocommerce
+              client-id: ${EVENDILO_PIERRETAPPETI_WOOCOMMERCE_OAUTH_CLIENT}
+              client-secret: ${EVENDILO_PIERRETAPPETI_WOOCOMMERCE_OAUTH_SECRET}
+              authorization-grant-type: authorization_code
+              redirect-uri: ${EVENDILO_ORIGIN}/login/oauth2/code/pierretappeti-woocommerce
+            pierretappeti-ebay:
+              provider: pierretappeti-ebay
+              client-id: ${EVENDILO_PIERRETAPPETI_EBAY_OAUTH_CLIENT}
+              client-secret: ${EVENDILO_PIERRETAPPETI_EBAY_OAUTH_SECRET}
+              authorization-grant-type: authorization_code
+              redirect-uri: ${EVENDILO_PIERRETAPPETI_EBAY_OAUTH_REDIRECT_URI}
+          provider:
+            pierretappeti-woocommerce:
+              authorization-uri: ${EVENDILO_PIERRETAPPETI_WOOCOMMERCE_OAUTH_URL}/authorize
+              token-uri: ${EVENDILO_PIERRETAPPETI_WOOCOMMERCE_OAUTH_URL}/token
+              user-info-uri: ${EVENDILO_PIERRETAPPETI_WOOCOMMERCE_OAUTH_URL}/me
+              user-info-authentication-method: basic
+              user-name-attribute: user_login
+            pierretappeti-ebay:
+              authorization-uri: ${EVENDILO_PIERRETAPPETI_EBAY_OAUTH_AUTH_URL}
+              token-uri: ${EVENDILO_PIERRETAPPETI_EBAY_OAUTH_URL}/identity/v1/oauth2/token
+              user-info-uri: ${EVENDILO_PIERRETAPPETI_EBAY_OAUTH_USER_URL}/commerce/identity/v1/user/
+              user-info-authentication-method: basic
+              user-name-attribute: username
+
+
+  variables:
+    corsAllowedOrigin: ${EVENDILO_CORS_ALLOWED_ORIGIN}
+    woocommerce:
+      - identifier: "pierretappeti-woocommerce"
+        url: ${EVENDILO_PIERRETAPPETI_WOOCOMMERCE_API_URL}
+        importerConfig:
+          attributes: ${EVENDILO_PIERRETAPPETI_IMPORTER_ATTRIBUTES}
+          imageUploadBaseUrl: ${EVENDILO_PIERRETAPPETI_URL}
+        credentials:
+          username: ${EVENDILO_PIERRETAPPETI_WOOCOMMERCE_API_USERNAME}
+          password: ${EVENDILO_PIERRETAPPETI_WOOCOMMERCE_API_PASSWORD}
+    ebay:
+      - identifier: "pierretappeti-ebay"
+        url:  ${EVENDILO_PIERRETAPPETI_EBAY_API_URL}
+        importerConfig:
+          attributes: ${EVENDILO_PIERRETAPPETI_IMPORTER_ATTRIBUTES}
+        merchantLocationKey: ${EVENDILO_PIERRETAPPETI_EBAY_MERCHANT_LOCATION_KEY}
+    amazon:
+    - identifier: "pierretappeti-amazon"
+      importerConfig:
+        attributes: ${EVENDILO_PIERRETAPPETI_IMPORTER_ATTRIBUTES}
+
+
+
+  logging:
+    level:
+      org:
+        springframework:
+          security: DEBUG
+      xyz.deverse.evendilo.config.support.LoggingRequestInterceptor: DEBUG

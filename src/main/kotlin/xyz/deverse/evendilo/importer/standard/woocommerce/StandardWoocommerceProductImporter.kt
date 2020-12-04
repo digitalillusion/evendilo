@@ -86,23 +86,15 @@ class StandardWoocommerceProductImporter(var api: WoocommerceApi, var appConfigP
             val existing = api.findProduct(node)
 
             when (existing?.type ?: node.type) {
-                ProductType.Simple-> {
-                    existing?.let {
-                        node.images = it.images
-                        node.from(it) }
-                    node
-                }
+                ProductType.Simple,
                 ProductType.Variable -> {
-                    existing?.let {
-                        node.images = it.images
-                        node.from(it)
-                    }
-                    node.attributes = prepareAttributes(validAttributes, node)
+                    existing?.let { node.from(it) }
+                    validateAttributes(validAttributes, node);
                     node
                 }
                 ProductType.Variation -> {
                     val result = existing ?: node
-                    result.attributes = prepareAttributes(validAttributes, result)
+                    validateAttributes(validAttributes, result);
 
                     val imageName = getImageName(node)
                     val image = result.images.find { it.src.contains(imageName) } ?: node.images[0]
@@ -125,9 +117,6 @@ class StandardWoocommerceProductImporter(var api: WoocommerceApi, var appConfigP
                     result.variations.add(variation)
                     result
                 }
-                else -> {
-                    throw ImportLineException(ErrorCode.IMPORT_LINE_ERROR_PRODUCT_TYPE)
-                }
             }
         }
 
@@ -136,9 +125,9 @@ class StandardWoocommerceProductImporter(var api: WoocommerceApi, var appConfigP
     private fun getImageName(node: Product) =
             StringUtils.stripAccents("(.+?)(-\\d*)*\$".toRegex().find(File(node.images[0].src).nameWithoutExtension)?.groupValues!![1])
 
-    private fun prepareAttributes(validAttributes: MutableList<Attribute>, result: Product): MutableList<Attribute> {
-        return validAttributes.mapIndexed { index, a ->
-            val existingTerms = result.attributes.find { it.name == a.name }?.options ?: mutableListOf()
+    private fun validateAttributes(validAttributes: MutableList<Attribute>, product: Product) {
+        product.attributes = validAttributes.mapIndexed { index, a ->
+            val existingTerms = product.attributes.find { it.name == a.name }?.options ?: mutableListOf()
             mergeDistinct(a.options, existingTerms)
             a.position = index
             a

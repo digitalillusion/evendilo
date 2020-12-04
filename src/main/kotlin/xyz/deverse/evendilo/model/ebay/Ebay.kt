@@ -102,6 +102,7 @@ data class Product (
 ) : EbayModel {
     fun from(product: Product) {
         this.type = product.type
+        this.product.imageUrls = product.product.imageUrls
         this.offer.from(product.offer)
     }
 

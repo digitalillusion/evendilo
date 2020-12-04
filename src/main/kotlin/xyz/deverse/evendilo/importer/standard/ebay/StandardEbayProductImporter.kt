@@ -10,7 +10,6 @@ import xyz.deverse.evendilo.model.Destination
 import xyz.deverse.evendilo.model.Family
 import xyz.deverse.evendilo.model.ProductType
 import xyz.deverse.evendilo.model.ebay.Product
-import xyz.deverse.evendilo.model.woocommerce.Attribute
 import xyz.deverse.importer.AbstractImporter
 import xyz.deverse.importer.ImportMapper
 import xyz.deverse.importer.csv.CsvColumn
@@ -49,20 +48,16 @@ class StandardEbayProductImporter(var api: EbayApi, var appConfigProperties: App
             }
             node.offer.categoryId = if (node.offer.categoryId.isBlank()) { api.getCategorySuggestions(node.product) } else { node.offer.categoryId }
 
-            var validAspects = node.product.aspects
+            val validAspects = node.product.aspects
                     .filter { entry -> entry.value.joinToString().isNotBlank() }
                     .toMutableMap()
 
             when (node.type) {
-                ProductType.Simple -> {
-                    node.sku = node.offer.sku
-                    mergeExisting(node)
-                    node
-                }
+                ProductType.Simple,
                 ProductType.Variable -> {
                     node.sku = node.offer.sku
                     mergeExisting(node)
-                    node.product.aspects = prepareAttributes(validAspects, node)
+                    validateAspects(validAspects, node)
                     node
                 }
                 ProductType.Variation -> {
@@ -71,30 +66,27 @@ class StandardEbayProductImporter(var api: EbayApi, var appConfigProperties: App
                             .joinToString("_")
                             .replace("\\s+".toRegex(), "-")
                     mergeExisting(node)
-                    node.product.aspects = prepareAttributes(validAspects, node)
+                    validateAspects(validAspects, node)
                     node
                 }
             }
-
-            node
         }
     }
 
     private fun mergeExisting(node: Product) {
         val existing = api.findProduct(node)
         existing?.let {
-            node.product.imageUrls = it.product.imageUrls
             node.from(it)
         }
     }
 
-    private fun prepareAttributes(validAttributes: MutableMap<String, MutableList<String>>, result: Product) : HashMap<String, MutableList<String>> {
-        var prepared = LinkedHashMap<String, MutableList<String>>();
+    private fun validateAspects(validAttributes: MutableMap<String, MutableList<String>>, node: Product) {
+        val prepared = LinkedHashMap<String, MutableList<String>>();
         validAttributes.keys.forEach { a ->
-            val existingTerms = result.product.aspects.entries.find { it.key == a }?.value ?: mutableListOf()
+            val existingTerms = node.product.aspects.entries.find { it.key == a }?.value ?: mutableListOf()
             mergeDistinct(validAttributes[a]!!, existingTerms)
             prepared[a] = validAttributes[a]!!
         }
-        return prepared
+        node.product.aspects = prepared
     }
 }

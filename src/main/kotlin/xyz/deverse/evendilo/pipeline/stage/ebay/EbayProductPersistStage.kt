@@ -27,7 +27,6 @@ class EbayProductPersistStage(var api: EbayApi) : PersistStage<Product>() {
                 api.createOrUpdateProduct(target)
                 api.createOrUpdateOffer(target)
             }
-            ProductType.External,
             ProductType.Variable -> {
             }
         }
