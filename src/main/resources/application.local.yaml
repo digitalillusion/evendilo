@@ -10,6 +10,7 @@ profile:
     port: 8443
 
   spring:
+    profiles: local
     main:
       allow-bean-definition-overriding: true
 

@@ -40,7 +40,7 @@ class WoocommerceProductPersistStage(var api: WoocommerceApi) : PersistStage<Pro
             }
             variation
         }
-        if (variationCreated) {
+        if (variationCreated || target.type == ProductType.Simple) {
             api.updateProduct(target);
         }
         return target

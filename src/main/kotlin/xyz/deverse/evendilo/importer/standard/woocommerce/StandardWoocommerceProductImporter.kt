@@ -87,6 +87,7 @@ class StandardWoocommerceProductImporter(var api: WoocommerceApi, var appConfigP
             when (node.type) {
                 ProductType.Simple-> {
                     existing?.let { node.from(it) }
+                    validateAttributes(validAttributes, node);
                     node
                 }
                 ProductType.Variable -> {
@@ -94,22 +95,12 @@ class StandardWoocommerceProductImporter(var api: WoocommerceApi, var appConfigP
                         node.images = it.images
                         node.from(it)
                     }
-                    node.attributes = validAttributes.mapIndexed { index, a ->
-                        val existingTerms = node.attributes.find { it.name == a.name }?.options ?: mutableListOf()
-                        mergeDistinct(a.options, existingTerms)
-                        a.position = index
-                        a
-                    }.toMutableList()
+                    validateAttributes(validAttributes, node);
                     node
                 }
                 ProductType.Variation -> {
                     val result = existing ?: node
-                    result.attributes = validAttributes.mapIndexed { index, a ->
-                        val existingTerms = result.attributes.find { it.name == a.name }?.options ?: mutableListOf()
-                        mergeDistinct(a.options, existingTerms)
-                        a.position = index
-                        a
-                    }.toMutableList()
+                    validateAttributes(validAttributes, result);
 
                     val imageName = "(.+?)(-\\d*)*\$".toRegex().find(File(node.images[0].src).nameWithoutExtension)?.groupValues!![1]
                     val image = result.images.find { it.src.contains(imageName) } ?: node.images[0]
@@ -140,4 +131,12 @@ class StandardWoocommerceProductImporter(var api: WoocommerceApi, var appConfigP
 
     }
 
+    private fun validateAttributes(validAttributes: MutableList<Attribute>, product: Product) {
+        product.attributes = validAttributes.mapIndexed { index, a ->
+            val existingTerms = product.attributes.find { it.name == a.name }?.options ?: mutableListOf()
+            mergeDistinct(a.options, existingTerms)
+            a.position = index
+            a
+        }.toMutableList()
+    }
 }
