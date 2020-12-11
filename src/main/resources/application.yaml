@@ -75,5 +75,5 @@ logging:
   level:
     org:
       springframework:
-        security: INFO
+        security: DEBUG
     xyz.deverse.evendilo.config.support.LoggingRequestInterceptor: INFO
