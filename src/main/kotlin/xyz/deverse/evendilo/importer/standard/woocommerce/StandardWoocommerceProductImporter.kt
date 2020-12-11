@@ -85,16 +85,9 @@ class StandardWoocommerceProductImporter(var api: WoocommerceApi, var appConfigP
             val existing = api.findProduct(node)
 
             when (node.type) {
-                ProductType.Simple-> {
-                    existing?.let { node.from(it) }
-                    validateAttributes(validAttributes, node);
-                    node
-                }
+                ProductType.Simple,
                 ProductType.Variable -> {
-                    existing?.let {
-                        node.images = it.images
-                        node.from(it)
-                    }
+                    existing?.let { node.from(it) }
                     validateAttributes(validAttributes, node);
                     node
                 }
