@@ -169,6 +169,9 @@ class WoocommerceApi(var appConfigProperties: AppConfigurationProperties, var re
             rest().exchange("/wp-json/wc/v3/products/{productId}", HttpMethod.PUT, requestEntity, product.id!!)
         }
         val responseProduct = response.body!!
+
+        responseProduct.categories = product.categories // Categories are not updated in the response
+
         cache().productCache[responseProduct.name] = arrayOf(responseProduct)
         return responseProduct
     }

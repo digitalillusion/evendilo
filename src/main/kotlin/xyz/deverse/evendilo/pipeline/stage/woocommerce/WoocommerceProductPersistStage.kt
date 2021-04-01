@@ -23,7 +23,7 @@ class WoocommerceProductPersistStage(var api: WoocommerceApi) : PersistStage<Pro
     }
 
     private fun update(target: Product): Product {
-        var variationCreated = target.type != ProductType.Variation
+        var variationCreated = false
         replaceList(target.variations) { variation ->
             if (variation.id == null || variation.sku.isNotBlank()) {
                 replaceList(target.attributes) { attribute ->
@@ -40,7 +40,7 @@ class WoocommerceProductPersistStage(var api: WoocommerceApi) : PersistStage<Pro
             }
             variation
         }
-        if (variationCreated || target.type == ProductType.Simple) {
+        if (target.type != ProductType.Variation || variationCreated) {
             api.updateProduct(target);
         }
         return target
