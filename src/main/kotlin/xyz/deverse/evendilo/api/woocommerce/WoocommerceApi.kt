@@ -23,7 +23,7 @@ import xyz.deverse.evendilo.logger
 import xyz.deverse.evendilo.model.woocommerce.*
 
 
-const val MAX_PRODUCT_CACHE_SIZE : Int = 20
+const val MAX_PRODUCT_CACHE_SIZE : Int = 3
 
 
 fun convertAttributesToSingle(variation: ProductVariation) {
