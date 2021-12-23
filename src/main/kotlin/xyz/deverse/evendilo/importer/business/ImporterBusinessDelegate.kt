@@ -1,11 +1,10 @@
 package xyz.deverse.evendilo.importer.business
 
-import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import org.springframework.stereotype.Service
 import xyz.deverse.evendilo.entity.ImportEntity
 import xyz.deverse.evendilo.entity.ImportEntityKey
 import xyz.deverse.evendilo.functions.getAuthentication
+import xyz.deverse.evendilo.logger
 import xyz.deverse.evendilo.model.Destination
 import xyz.deverse.evendilo.model.Family
 import xyz.deverse.evendilo.model.Model
@@ -14,15 +13,14 @@ import xyz.deverse.importer.ImportLine
 import xyz.deverse.importer.Importer
 import xyz.deverse.importer.ReadFilter
 import xyz.deverse.importer.generic.ImportTag
-import java.lang.IllegalStateException
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.*
-import kotlin.math.max
 
 @Service
 class ImporterBusinessDelegate(var importers: List<Importer<out Model, out ImportLine>>, var entityFactories: List<EntityFactory>, var importEntityRepository: ImportEntityRepository) {
+    val logger = logger<ImporterBusinessDelegate>()
 
     fun <T : Model, S : ImportLine> getImporterFor(classSimpleName: String): Importer<T, S> {
         var cps = ClasspathScanner("xyz.deverse.evendilo.model")
@@ -91,6 +89,7 @@ class ImporterBusinessDelegate(var importers: List<Importer<out Model, out Impor
         val id = ImportEntityKey.of(token.authorizedClientRegistrationId, family, destination, filter.filename)
         val existing = importEntityRepository.findById(id)
         existing.ifPresent { e ->
+                    logger.info("Last import ran at ${e.timestamp} (${LocalDateTime.ofEpochSecond(e.timestamp, 0, ZoneOffset.UTC)})")
                     filter.rawData[firstSheet]!!.values.removeIf {
                         try {
                             val firstCellValue = it.iterator().next().trim()
@@ -102,6 +101,7 @@ class ImporterBusinessDelegate(var importers: List<Importer<out Model, out Impor
                         }
                     }
                 }
+
         val timestamp = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
         val importEntity = existing.orElse(ImportEntity(id, filter.version, timestamp))
         importEntity.timestamp = timestamp

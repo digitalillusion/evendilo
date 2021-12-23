@@ -117,14 +117,10 @@ class ImporterController(val importerProcessStatusCache: ImporterProcessStatusCa
         val cacheId = ImporterProcessStatus.getCacheId(importer.importTags)
         var oldImporterProcessStatus: ImporterProcessStatus? = retrieve(cacheId)
         var newImporterProcessStatus: ImporterProcessStatus
+        checkConcurrentUpload(cacheId)
+
         synchronized(importerProcessStatusCache) {
-            val concurrentProcesses: List<ImporterProcessStatus> = importerProcessStatusCache.values
-                    .flatMap { processesBySession -> processesBySession.values }
-                    .filter { process -> cacheId == ImporterProcessStatus.getCacheId(process.importTags) }
-                    .toList()
-            if (concurrentProcesses.stream().anyMatch { obj: ImporterProcessStatus -> obj.isStarted }) {
-                throw ConcurrentModificationException("An import for the same process $cacheId is already ongoing for another session")
-            }
+            checkConcurrentUpload(cacheId)
             if (oldImporterProcessStatus == null || oldImporterProcessStatus!!.isCompleted || oldImporterProcessStatus!!.isAborted) {
                 val iFamily = importer.importTags.find { importTag -> Family::class.sealedSubclasses.contains(importTag::class) }
                 val iDestination = importer.importTags.find { importTag -> Destination::class.sealedSubclasses.contains(importTag::class) }
@@ -148,6 +144,16 @@ class ImporterController(val importerProcessStatusCache: ImporterProcessStatusCa
 
         performImportFile(pipeline, strategy, importer, family, destination, cacheId)
         return retrieve(cacheId)
+    }
+
+    private fun checkConcurrentUpload(cacheId: String?) {
+        val concurrentProcesses: List<ImporterProcessStatus> = importerProcessStatusCache.values
+            .flatMap { processesBySession -> processesBySession.values }
+            .filter { process -> cacheId == ImporterProcessStatus.getCacheId(process.importTags) }
+            .toList()
+        if (concurrentProcesses.stream().anyMatch { obj: ImporterProcessStatus -> obj.isStarted }) {
+            throw ConcurrentModificationException("An import for the same process $cacheId is already ongoing for another session")
+        }
     }
 
     private fun getImportedTypes(): SortedSet<String> {
