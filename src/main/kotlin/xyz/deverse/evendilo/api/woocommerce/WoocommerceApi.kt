@@ -150,7 +150,7 @@ class WoocommerceApi(var appConfigProperties: AppConfigurationProperties, var re
             return product
         }
         convertAttributeTermsToNames(product.attributes)
-        logger.info("Creating product ${product.name}")
+        logger.info("Creating product ${product.name}: ${product.images.joinToString(", ", "[", "]")}")
         val responseProduct = retryTemplate.execute<Product, Exception> { 
             rest().postForObject("/wp-json/wc/v3/products", product, Product::class.java)!!
         }
@@ -164,7 +164,7 @@ class WoocommerceApi(var appConfigProperties: AppConfigurationProperties, var re
         }
         convertAttributeTermsToNames(product.attributes)
         val requestEntity: HttpEntity<Product> = HttpEntity(product)
-        logger.info("Updating product ${product.name} (${product.id})")
+        logger.info("Updating product ${product.name} (${product.id}): ${product.images.joinToString(", ", "[", "]")}")
         val response: ResponseEntity<Product> = retryTemplate.execute<ResponseEntity<Product>, Exception> { 
             rest().exchange("/wp-json/wc/v3/products/{productId}", HttpMethod.PUT, requestEntity, product.id!!)
         }
@@ -315,9 +315,9 @@ class WoocommerceApi(var appConfigProperties: AppConfigurationProperties, var re
             return variation
         }
         if (product.id == null) {
-            logger.info("Creating product ${product.name} first variation ${variation.sku}")
+            logger.info("Creating product ${product.name} first variation ${variation.sku}: [${variation.image}]")
         } else {
-            logger.info("Creating product ${product.name} (${product.id}) variation ${variation.sku}")
+            logger.info("Creating product ${product.name} (${product.id}) variation ${variation.sku}: [${variation.image}]")
         }
         convertAttributeTermsToNames(variation.attributes)
         convertAttributesToSingle(variation)
@@ -332,7 +332,7 @@ class WoocommerceApi(var appConfigProperties: AppConfigurationProperties, var re
     }
 
     fun updateProductVariation(product: Product, variation: ProductVariation) : ProductVariation {
-        logger.info("Updating product ${product.name} (${product.id}) variation ${variation.sku}")
+        logger.info("Updating product ${product.name} (${product.id}) variation ${variation.sku}: [${variation.image}]")
         convertAttributeTermsToNames(variation.attributes)
         convertAttributesToSingle(variation)
         val response = retryTemplate.execute<ResponseEntity<ProductVariation>, Exception> { 

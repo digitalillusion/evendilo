@@ -6,7 +6,6 @@ import xyz.deverse.evendilo.functions.replaceList
 import xyz.deverse.evendilo.model.Model
 import xyz.deverse.evendilo.model.ProductType
 import java.io.File
-import java.util.*
 import kotlin.reflect.full.isSubclassOf
 
 data class Tag (
@@ -23,7 +22,16 @@ data class Category (
 data class Image (
     override val id: Long?,
     var src: String = ""
-) : Model
+) : Model {
+    @JsonIgnore
+    fun getFilename() : String {
+        val nameWithPath = "(.+?)(-\\d*)*\$".toRegex().find(File(this.src).nameWithoutExtension)?.groupValues!![1]
+        if (nameWithPath.lastIndexOf("/") > -1) {
+            return nameWithPath.substring(nameWithPath.lastIndexOf("/") + 1)
+        }
+        return nameWithPath
+    }
+}
 
 sealed class Attribute (
         override val id: Long?,
@@ -150,8 +158,7 @@ data class Product(
     fun from(product: Product) {
         this.id = product.id
         replaceList(this.images) {
-            val imageName = "(.+?)(-\\d*)*\$".toRegex().find(File(it.src).nameWithoutExtension)?.groupValues!![1]
-            product.images.find { image -> image.src.contains(imageName) } ?: it
+            product.images.find { image -> image.getFilename() == it.getFilename() } ?: it
         }
         val newImages = this.images.filter { it.id == null }
         this.images = this.images.distinctBy { image -> image.id }

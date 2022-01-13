@@ -9,6 +9,7 @@ import xyz.deverse.evendilo.functions.replaceListIndexed
 import xyz.deverse.evendilo.importer.ErrorCode
 import xyz.deverse.evendilo.importer.ImportLineException
 import xyz.deverse.evendilo.importer.standard.EvendiloCsvLine
+import xyz.deverse.evendilo.logger
 import xyz.deverse.evendilo.model.Destination
 import xyz.deverse.evendilo.model.Family
 import xyz.deverse.evendilo.model.ProductType
@@ -18,7 +19,6 @@ import xyz.deverse.evendilo.model.woocommerce.ProductVariation
 import xyz.deverse.importer.AbstractImporter
 import xyz.deverse.importer.ImportMapper
 import xyz.deverse.importer.csv.CsvColumn
-import java.io.File
 
 
 data class StandardWoocommerceProductCsvLine(
@@ -38,6 +38,7 @@ data class StandardWoocommerceProductCsvLine(
 @Service
 class StandardWoocommerceProductImporter(var api: WoocommerceApi, var appConfigProperties: AppConfigurationProperties) :
         AbstractImporter<Product, ImportMapper.MappedLine<Product>>(Family.Standard, Destination.Woocommerce) {
+    val logger = logger<StandardWoocommerceProductImporter>()
 
     override fun preProcess() {
         api.refreshCache()
@@ -95,8 +96,7 @@ class StandardWoocommerceProductImporter(var api: WoocommerceApi, var appConfigP
                     val result = existing ?: node
                     validateAttributes(validAttributes, result);
 
-                    val imageName = "(.+?)(-\\d*)*\$".toRegex().find(File(node.images[0].src).nameWithoutExtension)?.groupValues!![1]
-                    val image = result.images.find { it.src.contains(imageName) } ?: node.images[0]
+                    val image = result.images.find { it.getFilename() == node.images[0].getFilename() } ?: node.images[0]
                     val sku = node.sku + "_" + variationAttributes.map { a: Attribute -> a.asSingle().option?.asName()?.name }.joinToString("_").replace("\\s+".toRegex(), "-")
                     val description = if (node != result) { "" } else { node.description }
                     val variation = ProductVariation(

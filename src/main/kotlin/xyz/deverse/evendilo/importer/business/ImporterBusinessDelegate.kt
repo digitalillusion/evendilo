@@ -88,21 +88,34 @@ class ImporterBusinessDelegate(var importers: List<Importer<out Model, out Impor
         val token = getAuthentication()
         val id = ImportEntityKey.of(token.authorizedClientRegistrationId, family, destination, filter.filename)
         val existing = importEntityRepository.findById(id)
+        var timestamp = 0L
         existing.ifPresent { e ->
-                    logger.info("Last import ran at ${e.timestamp} (${LocalDateTime.ofEpochSecond(e.timestamp, 0, ZoneOffset.UTC)})")
+                    timestamp = e.timestamp
+                    logger.info("Last line modification was done at ${e.timestamp} (${LocalDateTime.ofEpochSecond(e.timestamp, 0, ZoneOffset.UTC)})")
                     filter.rawData[firstSheet]!!.values.removeIf {
                         try {
-                            val firstCellValue = it.iterator().next().trim()
-                            val cellDateTime = LocalDateTime.parse(firstCellValue, DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"))
-                            val cellTimestamp = cellDateTime.toEpochSecond(ZoneOffset.UTC)
-                            e.timestamp > cellTimestamp && e.version >= filter.version
+                            val iterator = it.iterator()
+                            if (iterator.hasNext()) {
+                                val firstCellValue = iterator.next().trim()
+                                val cellDateTime = LocalDateTime.parse(firstCellValue, DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"))
+                                val cellTimestamp = cellDateTime.toEpochSecond(ZoneOffset.UTC)
+                                if (cellTimestamp > timestamp) {
+                                    timestamp = cellTimestamp
+                                }
+                                val excluded = e.timestamp >= cellTimestamp && e.version >= filter.version
+                                if (!excluded) {
+                                    logger.debug("Line ${iterator.asSequence().joinToString(", ", "[", "]")} has timestamp $cellTimestamp ($cellDateTime)")
+                                }
+                                excluded
+                            } else {
+                                false
+                            }
                         } catch (e: Exception) {
-                            false
+                            logger.error("Line excluded due to filter error: ${e.message}")
+                            true
                         }
                     }
                 }
-
-        val timestamp = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
         val importEntity = existing.orElse(ImportEntity(id, filter.version, timestamp))
         importEntity.timestamp = timestamp
         importEntityRepository.save(importEntity)

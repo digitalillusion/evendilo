@@ -151,7 +151,7 @@ class ImporterController(val importerProcessStatusCache: ImporterProcessStatusCa
             .flatMap { processesBySession -> processesBySession.values }
             .filter { process -> cacheId == ImporterProcessStatus.getCacheId(process.importTags) }
             .toList()
-        if (concurrentProcesses.stream().anyMatch { obj: ImporterProcessStatus -> obj.isStarted }) {
+        if (concurrentProcesses.stream().anyMatch { obj: ImporterProcessStatus -> obj.isStarted && (!obj.isCompleted || !obj.isAborted) }) {
             throw ConcurrentModificationException("An import for the same process $cacheId is already ongoing for another session")
         }
     }
