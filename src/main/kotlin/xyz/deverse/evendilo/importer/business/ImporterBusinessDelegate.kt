@@ -104,7 +104,7 @@ class ImporterBusinessDelegate(var importers: List<Importer<out Model, out Impor
                                 }
                                 val excluded = e.timestamp >= cellTimestamp && e.version >= filter.version
                                 if (!excluded) {
-                                    logger.debug("Line ${iterator.asSequence().joinToString(", ", "[", "]")} has timestamp $cellTimestamp ($cellDateTime)")
+                                    if (logger.isDebugEnabled) logger.debug("Line ${iterator.asSequence().joinToString(", ", "[", "]")} has timestamp $cellTimestamp ($cellDateTime)")
                                 }
                                 excluded
                             } else {

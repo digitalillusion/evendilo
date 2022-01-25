@@ -66,6 +66,6 @@ data class AppConfigurationProperties(
 
     @PostConstruct
     fun debugAppProperties() {
-        logger.debug(this.toString())
+        if (logger.isDebugEnabled) logger.debug(this.toString())
     }
 }

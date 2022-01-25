@@ -45,7 +45,7 @@ abstract class PersistStage<T : Model>() : Pipeline.Stage {
         val previousNodes: MutableList<Model> = ArrayList()
         iterateTarget { target: T, _: Boolean ->
             if (excludedIds.contains(target.id)) {
-                logger.debug("Skipping Node " + target.id + " since it is excluded")
+                if (logger.isDebugEnabled) logger.debug("Skipping Node " + target.id + " since it is excluded")
                 return@iterateTarget
             }
             val persistAction: PersistActionType = if (ActionType.PERSIST == actionType) {

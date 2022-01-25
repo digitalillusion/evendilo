@@ -59,7 +59,7 @@ class ImporterController(val importerProcessStatusCache: ImporterProcessStatusCa
                     .filename(oldImporterProcessStatus.filename)
                     .build()
             logger.info(httpSession.id + " [DELETE importerProcessAbort] ")
-            logger.debug(httpSession.id + " [DELETE importerProcessAbort] " + cacheId + "=" + oldImporterProcessStatus.toString())
+            if (logger.isDebugEnabled) logger.debug(httpSession.id + " [DELETE importerProcessAbort] " + cacheId + "=" + oldImporterProcessStatus.toString())
             update(cacheId, newImporterProcessStatus)
             return newImporterProcessStatus
         }
@@ -84,7 +84,7 @@ class ImporterController(val importerProcessStatusCache: ImporterProcessStatusCa
         }
         logger.info(httpSession.id + " [GET importerProcessRestart] " )
         val loggedStatus = importerProcessStatus.toString()
-        logger.debug(httpSession.id + " [GET importerProcessRestart] " + cacheId + "=" + loggedStatus)
+        if (logger.isDebugEnabled) logger.debug(httpSession.id + " [GET importerProcessRestart] " + cacheId + "=" + loggedStatus)
         return importerProcessStatus!!
     }
 
@@ -98,7 +98,7 @@ class ImporterController(val importerProcessStatusCache: ImporterProcessStatusCa
         val importerProcessStatus = retrieve(cacheId)
                 ?: return importerProcessRestart(family, destination)
         logger.info(httpSession.id + " [GET importerProcessStatus] ")
-        logger.debug(httpSession.id + " [GET importerProcessStatus] " + cacheId + "=" + importerProcessStatus.toString())
+        if (logger.isDebugEnabled) logger.debug(httpSession.id + " [GET importerProcessStatus] " + cacheId + "=" + importerProcessStatus.toString())
         return importerProcessStatus.withoutResultNodes()
     }
 
@@ -140,7 +140,7 @@ class ImporterController(val importerProcessStatusCache: ImporterProcessStatusCa
         }
 
         logger.info(httpSession.id + " [POST uploadFileHandler] ")
-        logger.debug(httpSession.id + " [POST uploadFileHandler] " + cacheId + "=" + newImporterProcessStatus.toString())
+        if (logger.isDebugEnabled) logger.debug(httpSession.id + " [POST uploadFileHandler] " + cacheId + "=" + newImporterProcessStatus.toString())
 
         performImportFile(pipeline, strategy, importer, family, destination, cacheId)
         return retrieve(cacheId)
@@ -223,7 +223,7 @@ class ImporterController(val importerProcessStatusCache: ImporterProcessStatusCa
                         .linesSent(lastLinesSent)
                         .build()
                 update(cacheId, newImporterProcessStatus)
-                logger.debug(httpSession.id + " [WS performImportFile] " + cacheId + "=" + newImporterProcessStatus.toString())
+                if (logger.isDebugEnabled) logger.debug(httpSession.id + " [WS performImportFile] " + cacheId + "=" + newImporterProcessStatus.toString())
                 if (lastTimestamp === now || newImporterProcessStatus.isAborted || newImporterProcessStatus.isCompleted) {
                     // Throttle the number of messages made available to the websocket so that it doesn't overflow and send the new results only
                     messagingTemplate.convertAndSend(importer.publisherUrl, newImporterProcessStatus.withoutResultNodes().withResultSubList(oldImporterProcessStatus.linesSent, results.size))
