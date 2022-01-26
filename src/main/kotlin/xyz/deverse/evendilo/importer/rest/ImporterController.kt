@@ -188,6 +188,7 @@ class ImporterController(val importerProcessStatusCache: ImporterProcessStatusCa
             httpSession.maxInactiveInterval = maxInactiveInterval + currentInactiveTime
             val sessionCache: MutableMap<String, ImporterProcessStatus> = (importerProcessStatusCache[httpSession.id] ?: HashMap()).toMutableMap()
             sessionCache[cacheId] = newImporterProcessStatus
+            importerProcessStatusCache.replaceAll { _, cache -> cache.filterKeys { it != cacheId } }
             importerProcessStatusCache[httpSession.id] = sessionCache
         }
     }
