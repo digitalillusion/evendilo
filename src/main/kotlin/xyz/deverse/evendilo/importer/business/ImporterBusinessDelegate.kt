@@ -28,13 +28,14 @@ class ImporterBusinessDelegate(var importers: List<Importer<out Model, out Impor
         return try {
             val importerCanonicalName: String
             if (matchingClasses.isNotEmpty()) {
-                val instance = matchingClasses[0].newInstance() as Model
+                val instance = matchingClasses[0].getDeclaredConstructor().newInstance() as Model
                 importerCanonicalName = resolveImporterClassname(classSimpleName, instance.family, instance.destination)
             } else {
                 cps = ClasspathScanner("xyz.deverse.evendilo.importer")
                 matchingClasses = cps.findBySimpleName(classSimpleName + "Importer")
                 importerCanonicalName = matchingClasses[0].canonicalName
             }
+            @Suppress("UNCHECKED_CAST")
             importers.stream().filter { importer: Importer<out Model, out ImportLine> ->
                 val importerClassname = importer.javaClass.canonicalName
                 importerClassname.startsWith(importerCanonicalName)
@@ -60,6 +61,7 @@ class ImporterBusinessDelegate(var importers: List<Importer<out Model, out Impor
                 matchingClasses = cps.findBySimpleName(classSimpleName + "Importer")
                 importerCanonicalName = matchingClasses[0].canonicalName
             }
+            @Suppress("UNCHECKED_CAST")
             importers.stream().filter { importer: Importer<out Model, out ImportLine> ->
                 val importerClassname = importer.javaClass.canonicalName
                 importerClassname.startsWith(importerCanonicalName)

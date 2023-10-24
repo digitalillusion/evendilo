@@ -44,6 +44,12 @@ class StandardEbayProductImporter(var api: EbayApi) :
                 ProductType.Simple -> {
                     node.offer.categoryId = api.getCategorySuggestions()
                 }
+                ProductType.Grouped,
+                ProductType.Variation,
+                ProductType.External,
+                ProductType.Variable -> {
+
+                }
             }
 
             node

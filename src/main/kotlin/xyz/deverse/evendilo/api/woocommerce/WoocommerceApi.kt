@@ -21,6 +21,9 @@ import xyz.deverse.evendilo.functions.getAuthentication
 import xyz.deverse.evendilo.functions.replaceList
 import xyz.deverse.evendilo.logger
 import xyz.deverse.evendilo.model.woocommerce.*
+import java.util.*
+import kotlin.collections.HashMap
+import kotlin.collections.LinkedHashMap
 
 
 const val MAX_PRODUCT_CACHE_SIZE : Int = 3
@@ -277,9 +280,9 @@ class WoocommerceApi(var appConfigProperties: AppConfigurationProperties, var re
         val attributeTerms = findAttributeTerms(attribute)
         val sentTerms = mutableListOf<String>()
         for (option in optionsToAdd) {
-            val trimmedName2 = option.name.toLowerCase().replace("\\s+".toRegex(), "")
+            val trimmedName2 = option.name.lowercase(Locale.getDefault()).replace("\\s+".toRegex(), "")
             if (attributeTerms.none {
-                    val trimmedName1 = it.name.toLowerCase().replace("\\s+".toRegex(), "")
+                    val trimmedName1 = it.name.lowercase(Locale.getDefault()).replace("\\s+".toRegex(), "")
                     trimmedName1 == trimmedName2
                 }) {
                 if (!sentTerms.contains(trimmedName2)) {
