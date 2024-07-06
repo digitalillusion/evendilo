@@ -2,12 +2,15 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.springframework.boot.gradle.plugin.SpringBootPlugin;
 
 plugins {
+    java
 	id("org.springframework.boot") version "2.5.15"
 	kotlin("jvm") version "1.8.21"
 	kotlin("plugin.spring") version "1.8.21"
 	kotlin("kapt") version "1.8.21"
 	kotlin("plugin.allopen") version "1.8.21"
 }
+
+apply(plugin = "io.spring.dependency-management")
 
 kapt {
 	correctErrorTypes = true
@@ -31,7 +34,6 @@ repositories {
 
 dependencies {
 	implementation(kotlin("stdlib-jdk8"))
-	implementation(platform(SpringBootPlugin.BOM_COORDINATES))
 	implementation("org.mapstruct:mapstruct:1.5.5.Final")
 	kapt("org.mapstruct:mapstruct-processor:1.5.5.Final")
 
@@ -45,7 +47,6 @@ dependencies {
 	implementation("org.mapstruct:mapstruct-jdk8:1.3.1.Final")
 	implementation("io.springfox:springfox-swagger-ui:3.0.0")
 	implementation("io.springfox:springfox-data-rest:3.0.0")
-	implementation("org.springframework:spring-beans:5.2.22.RELEASE")
 	implementation("io.springfox:springfox-swagger2:3.0.0")
 	implementation("io.springfox:springfox-bean-validators:3.0.0")
 	implementation("org.springframework.security:spring-security-oauth2-client")
@@ -82,4 +83,12 @@ tasks.withType<KotlinCompile> {
 		freeCompilerArgs = listOf("-Xjsr305=strict")
 		jvmTarget = "1.8"
 	}
+}
+
+tasks.named<Jar>("jar") {
+	enabled = false
+}
+
+springBoot {
+	mainClass.set("xyz.deverse.evendilo.EvendiloCoreApplicationKt")
 }
